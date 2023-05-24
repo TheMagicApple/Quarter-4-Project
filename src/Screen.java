@@ -119,16 +119,25 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			if(weaponCooldown>0) {
 				weaponCooldown--;
 			}
+			System.out.println("BULLETS: "+bullets.size());
+			
 			for(int i=0;i<bullets.size();i++) {
+				boolean bad=false;
 				Bullet bullet=bullets.get(i);
+				if(bullet.x>1000f || bullet.x<0f) {
+					bullets.remove(i);
+					i--;
+					bad=true;
+				}
 				for(Platform plat:platforms) {
-					if(collision(Math.round(bullet.x),Math.round(bullet.y),5,5,plat.x,plat.y,plat.width,plat.height)){
+					if(!bad && collision(Math.round(bullet.x),Math.round(bullet.y),5,5,plat.x,plat.y,plat.width,plat.height)){
 						bullets.remove(i);
 						i--;
+						bad=true;
 					}
 				}
 				if(collision(Math.round(bullet.x),Math.round(bullet.y),bullet.width,bullet.height,Math.round(players[myID].x),Math.round(players[myID].y),20,20)){
-					if(Integer.parseInt(String.valueOf(bullet.player.charAt(6)))!=myID) {
+					if(!bad && Integer.parseInt(String.valueOf(bullet.player.charAt(6)))!=myID) {
 						String weaponClass=players[Integer.parseInt(String.valueOf(bullet.player.charAt(6)))].weaponClass;
 						if(weaponClass.equals("MachineGun")) {
 							players[myID].health-=MACHINEGUNDAMAGE;
@@ -238,8 +247,6 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			if(shooting && !dead) {
 				if(weaponCooldown==0) {
 					bulletCounter++;
-					px=Math.round(players[myID].x+18);
-					py=Math.round(players[myID].y+10);
 					float deltax=mx-px;
 					float deltay=my-py;
 					float vx=(float)(deltax/Math.sqrt(deltax*deltax+deltay*deltay));
@@ -280,6 +287,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		return !(x2>x1+w1 || x2+w2<x1 || y2>y1+h1 || y2+h2<y1);
 	}
 	public static void newMessage(String message) {
+		System.out.println(message);
 		String[] messageParts=message.split("U");
 		if(messageParts.length==1) {
 			if(messageParts[0].equals("START")) {
@@ -443,8 +451,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		// TODO Auto-generated method stub
-		mx=e.getX()-5;
-		my=e.getY()-15;
+		mx=e.getX();
+		my=e.getY();
 		int x=e.getX();
 		int y=e.getY();
 		px=Math.round(players[myID].x+18);
