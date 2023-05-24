@@ -141,19 +141,19 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						String weaponClass=players[Integer.parseInt(String.valueOf(bullet.player.charAt(6)))].weaponClass;
 						if(weaponClass.equals("MachineGun")) {
 							players[myID].health-=MACHINEGUNDAMAGE;
-							c.write("Player"+myID+"UDamageU"+MACHINEGUNDAMAGE+"U"+(i));
+							c.write("Player"+myID+"UDamageU"+MACHINEGUNDAMAGE+"U"+(i+1));
 						}else if(weaponClass.equals("Assault")) {
 							players[myID].health-=ASSAULTDAMAGE;
-							c.write("Player"+myID+"UDamageU"+ASSAULTDAMAGE+"U"+(i));
+							c.write("Player"+myID+"UDamageU"+ASSAULTDAMAGE+"U"+(i+1));
 						}else if(weaponClass.equals("Sniper")) {
 							players[myID].health-=SNIPERDAMAGE;
-							c.write("Player"+myID+"UDamageU"+SNIPERDAMAGE+"U"+(i));
+							c.write("Player"+myID+"UDamageU"+SNIPERDAMAGE+"U"+(i+1));
 						}else if(weaponClass.equals("Shotgun")) {
 							players[myID].health-=SHOTGUNDAMAGE;
-							c.write("Player"+myID+"UDamageU"+SHOTGUNDAMAGE+"U"+(i));
+							c.write("Player"+myID+"UDamageU"+SHOTGUNDAMAGE+"U"+(i+1));
 						}else if(weaponClass.equals("TriShot")) {
 							players[myID].health-=TRISHOTDAMAGE;
-							c.write("Player"+myID+"UDamageU"+TRISHOTDAMAGE+"U"+(i));
+							c.write("Player"+myID+"UDamageU"+TRISHOTDAMAGE+"U"+(i+1));
 						}
 						players[myID].animationStage=0;
 						bullets.remove(i);
