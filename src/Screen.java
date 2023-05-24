@@ -255,7 +255,6 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					float deltay=my-py;
 					float vx=(float)(deltax/Math.sqrt(deltax*deltax+deltay*deltay));
 					float vy=-1*(float)(deltay/Math.sqrt(deltax*deltax+deltay*deltay));
-					
 					vx*=10;
 					vy*=10;
 					int width=5;
@@ -264,8 +263,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						width=15;
 						height=15;
 					}
-					bullets.add(new Bullet(players[myID].x+20,players[myID].y+10,width,height,vx,vy,"Player"+myID));
-					System.out.println("SHOOT");
+					bullets.add(new Bullet(players[myID].x+18,players[myID].y+10,width,height,vx,vy,"Player"+myID));
+					System.out.println("I SHOOT");
 					c.write("Player"+myID+"UShootU"+players[myID].weaponClass+"BulletU"+vx+" "+vy);
 					if(players[myID].weaponClass.equals("MachineGun")) {
 						weaponCooldown=5;
@@ -325,7 +324,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					players[id].name=change;
 				}
 				if(command.equals("Shoot")) {
-					System.out.println("SHOOT");
+					System.out.println("YOU SHOOT");
 					float vx=Float.parseFloat(messageParts[3].split(" ")[0]);
 					float vy=Float.parseFloat(messageParts[3].split(" ")[1]);
 					int width=5;
@@ -354,7 +353,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						System.out.println("REMOVED BULLET 0 BC TOUCHED PLAYER");
 					}
 					else {
-						bullets.remove(Integer.parseInt(messageParts[3]));
+						if (Integer.parseInt(messageParts[3]) < bullets.size())
+							bullets.remove(Integer.parseInt(messageParts[3]));
 						System.out.println("REMOVED BULLET "+Integer.parseInt(messageParts[3])+" BC TOUCHED PLAYER");
 					}
 				}
