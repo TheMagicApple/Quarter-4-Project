@@ -126,12 +126,15 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				Bullet bullet=bullets.get(i);
 				if(bullet.x>1000f || bullet.x<0f) {
 					bullets.remove(i);
+					System.out.println("REMOVED BULLET "+i+" BC OUT OF BOUNDS");
 					i--;
+					
 					bad=true;
 				}
 				for(Platform plat:platforms) {
 					if(!bad && collision(Math.round(bullet.x),Math.round(bullet.y),5,5,plat.x,plat.y,plat.width,plat.height)){
 						bullets.remove(i);
+						System.out.println("REMOVED BULLET "+i+" BC TOUCHED PLATFORM");
 						i--;
 						bad=true;
 					}
@@ -157,6 +160,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						}
 						players[myID].animationStage=0;
 						bullets.remove(i);
+						System.out.println("REMOVED BULLET "+i+" BC TOUCHED PLAYER");
 						i--;
 						if(players[myID].health<=0) {
 							System.out.println("I AM DEAD.");
@@ -287,7 +291,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		return !(x2>x1+w1 || x2+w2<x1 || y2>y1+h1 || y2+h2<y1);
 	}
 	public static void newMessage(String message) {
-		System.out.println(message);
+	
 		String[] messageParts=message.split("U");
 		if(messageParts.length==1) {
 			if(messageParts[0].equals("START")) {
@@ -343,8 +347,14 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				if(command.equals("Damage")) {
 					players[id].health-=Integer.parseInt(change);
 					players[id].animationStage=0;
-					if(bullets.size()==1)bullets.remove(0);
-					else bullets.remove(Integer.parseInt(messageParts[3]));
+					if(bullets.size()==1) {
+						bullets.remove(0);
+						System.out.println("REMOVED BULLET 0 BC TOUCHED PLAYER");
+					}
+					else {
+						bullets.remove(Integer.parseInt(messageParts[3]));
+						System.out.println("REMOVED BULLET "+Integer.parseInt(messageParts[3])+" BC TOUCHED PLAYER");
+					}
 				}
 				if(command.equals("Dead")) {
 					System.out.println("Player "+id+" is Dead.");
