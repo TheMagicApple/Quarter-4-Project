@@ -144,19 +144,19 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						String weaponClass=players[Integer.parseInt(String.valueOf(bullet.player.charAt(6)))].weaponClass;
 						if(weaponClass.equals("MachineGun")) {
 							players[myID].health-=MACHINEGUNDAMAGE;
-							c.write("Player"+myID+"UDamageU"+MACHINEGUNDAMAGE+"U"+(i+1));
+							c.write("Player"+myID+"UDamageU"+MACHINEGUNDAMAGE+"U"+(i));
 						}else if(weaponClass.equals("Assault")) {
 							players[myID].health-=ASSAULTDAMAGE;
-							c.write("Player"+myID+"UDamageU"+ASSAULTDAMAGE+"U"+(i+1));
+							c.write("Player"+myID+"UDamageU"+ASSAULTDAMAGE+"U"+(i));
 						}else if(weaponClass.equals("Sniper")) {
 							players[myID].health-=SNIPERDAMAGE;
-							c.write("Player"+myID+"UDamageU"+SNIPERDAMAGE+"U"+(i+1));
+							c.write("Player"+myID+"UDamageU"+SNIPERDAMAGE+"U"+(i));
 						}else if(weaponClass.equals("Shotgun")) {
 							players[myID].health-=SHOTGUNDAMAGE;
-							c.write("Player"+myID+"UDamageU"+SHOTGUNDAMAGE+"U"+(i+1));
+							c.write("Player"+myID+"UDamageU"+SHOTGUNDAMAGE+"U"+(i));
 						}else if(weaponClass.equals("TriShot")) {
 							players[myID].health-=TRISHOTDAMAGE;
-							c.write("Player"+myID+"UDamageU"+TRISHOTDAMAGE+"U"+(i+1));
+							c.write("Player"+myID+"UDamageU"+TRISHOTDAMAGE+"U"+(i));
 						}
 						players[myID].animationStage=0;
 						bullets.remove(i);
@@ -460,40 +460,46 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	}
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		// TODO Auto-generated method stub
-		mx=e.getX();
-		my=e.getY();
-		int x=e.getX();
-		int y=e.getY();
-		px=Math.round(players[myID].x+18);
-		py=Math.round(players[myID].y+10);
-		float deltax=x-px;
-		float deltay=y-py;
-		if(deltax<0) {
-			players[myID].weaponRotation=(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180));
-			c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180)));
-		}else {
-			players[myID].weaponRotation=(float) Math.atan(deltay/deltax);
-			c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)));
+		if(started) {
+			mx=e.getX();
+			my=e.getY();
+			int x=e.getX();
+			int y=e.getY();
+			px=Math.round(players[myID].x+18);
+			py=Math.round(players[myID].y+10);
+			float deltax=x-px;
+			float deltay=y-py;
+			if(deltax<0) {
+				players[myID].weaponRotation=(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180));
+				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180)));
+			}else {
+				players[myID].weaponRotation=(float) Math.atan(deltay/deltax);
+				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)));
+			}
 		}
+		// TODO Auto-generated method stub
+		
 	}
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		mx=e.getX();
-		my=e.getY();
-		int x=e.getX();
-		int y=e.getY();
-		px=Math.round(players[myID].x+18);
-		py=Math.round(players[myID].y+10);
-		float deltax=x-px;
-		float deltay=y-py;
-		if(deltax<0) {
-			players[myID].weaponRotation=(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180));
-			c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180)));
-		}else {
-			players[myID].weaponRotation=(float) Math.atan(deltay/deltax);
-			c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)));
+		if(started) {
+			mx=e.getX();
+			my=e.getY();
+			int x=e.getX();
+			int y=e.getY();
+			px=Math.round(players[myID].x+18);
+			py=Math.round(players[myID].y+10);
+			float deltax=x-px;
+			float deltay=y-py;
+			if(deltax<0) {
+				players[myID].weaponRotation=(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180));
+				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180)));
+			}else {
+				players[myID].weaponRotation=(float) Math.atan(deltay/deltax);
+				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)));
+			}
 		}
+		
 		
 		
 	}
