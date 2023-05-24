@@ -29,7 +29,11 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	final static int FPS=100;
 	final static int WIDTH=1000;
 	final static int HEIGHT=500;
-	final static int BASICDAMAGE=20;
+	final static int MACHINEGUNDAMAGE=4;
+	final static int ASSAULTDAMAGE=10;
+	final static int SNIPERDAMAGE=50;
+	final static int SHOTGUNDAMAGE=25;
+	final static int TRISHOTDAMAGE=10;
 	int groundLevel=400;
 	int rightGroundLevel=1000;
 	int leftGroundLevel=-1000;
@@ -42,6 +46,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	int weaponCooldown=0;
 	int mx=0;
 	int my=0;
+	int bulletCounter=0;
 	public Screen() throws IOException {
 		for(int i=0;i<players.length;i++) {
 			players[i]=new Player();
@@ -116,13 +121,28 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						i--;
 					}
 				}
-				if(collision(Math.round(bullet.x),Math.round(bullet.y),5,5,Math.round(players[myID].x),Math.round(players[myID].y),20,20)){
+				if(collision(Math.round(bullet.x),Math.round(bullet.y),bullet.width,bullet.height,Math.round(players[myID].x),Math.round(players[myID].y),20,20)){
 					if(Integer.parseInt(String.valueOf(bullet.player.charAt(6)))!=myID) {
-						players[myID].health-=BASICDAMAGE;
+						String weaponClass=players[Integer.parseInt(String.valueOf(bullet.player.charAt(6)))].weaponClass;
+						if(weaponClass.equals("MachineGun")) {
+							players[myID].health-=MACHINEGUNDAMAGE;
+							c.write("Player"+myID+"UDamageU"+MACHINEGUNDAMAGE+"U"+(i));
+						}else if(weaponClass.equals("Assault")) {
+							players[myID].health-=ASSAULTDAMAGE;
+							c.write("Player"+myID+"UDamageU"+ASSAULTDAMAGE+"U"+(i));
+						}else if(weaponClass.equals("Sniper")) {
+							players[myID].health-=SNIPERDAMAGE;
+							c.write("Player"+myID+"UDamageU"+SNIPERDAMAGE+"U"+(i));
+						}else if(weaponClass.equals("Shotgun")) {
+							players[myID].health-=SHOTGUNDAMAGE;
+							c.write("Player"+myID+"UDamageU"+SHOTGUNDAMAGE+"U"+(i));
+						}else if(weaponClass.equals("TriShot")) {
+							players[myID].health-=TRISHOTDAMAGE;
+							c.write("Player"+myID+"UDamageU"+TRISHOTDAMAGE+"U"+(i));
+						}
 						players[myID].animationStage=0;
 						bullets.remove(i);
 						i--;
-						c.write("Player"+myID+"UDamageU"+BASICDAMAGE+"U"+(i+1));
 						if(players[myID].health<=0) {
 							System.out.println("I AM DEAD.");
 							dead=true;
@@ -211,17 +231,38 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			
 			if(shooting && !dead) {
 				if(weaponCooldown==0) {
+					bulletCounter++;
 					int px=Math.round(players[myID].x);
 					int py=Math.round(players[myID].y);
 					float deltax=mx-px;
 					float deltay=my-py;
 					float vx=(float)(deltax/Math.sqrt(deltax*deltax+deltay*deltay));
 					float vy=-1*(float)(deltay/Math.sqrt(deltax*deltax+deltay*deltay));
-					vx*=8;
-					vy*=8;
-					bullets.add(new Bullet(players[myID].x+20,players[myID].y+10,vx,vy,"Player"+myID));
-					c.write("Player"+myID+"UShootUBasicBulletU"+vx+" "+vy);
-					weaponCooldown=10;
+					vx*=10;
+					vy*=10;
+					int width=5;
+					int height=5;
+					if(players[myID].weaponClass.equals("Shotgun")) {
+						width=15;
+						height=15;
+					}
+					bullets.add(new Bullet(players[myID].x+20,players[myID].y+10,width,height,vx,vy,"Player"+myID));
+					c.write("Player"+myID+"UShootU"+players[myID].weaponClass+"BulletU"+vx+" "+vy);
+					if(players[myID].weaponClass.equals("MachineGun")) {
+						weaponCooldown=5;
+					}else if(players[myID].weaponClass.equals("Assault")){
+						weaponCooldown=15;
+					}else if(players[myID].weaponClass.equals("Sniper")) {
+						weaponCooldown=70;
+					}else if(players[myID].weaponClass.equals("Shotgun")) {
+						weaponCooldown=30;
+					}else if(players[myID].weaponClass.equals("TriShot")) {
+						if(bulletCounter%3==0) {
+							weaponCooldown=50;
+						}else {
+							weaponCooldown=3;
+						}
+					}
 				}
 			}
 			Thread.sleep(1000/FPS);
@@ -266,14 +307,29 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				if(command.equals("Shoot")) {
 					float vx=Float.parseFloat(messageParts[3].split(" ")[0]);
 					float vy=Float.parseFloat(messageParts[3].split(" ")[1]);
-					if(change.equals("BasicBullet")) {
-						bullets.add(new Bullet(players[id].x+20,players[id].y+10,vx,vy,"Player"+id));
+					int width=5;
+					int height=5;
+					if(players[id].weaponClass.equals("Shotgun")) {
+						width=15;
+						height=15;
+					}
+					if(change.equals("MachineGunBullet")) { //This allows for different bullets for different classes, not used rn
+						bullets.add(new Bullet(players[id].x+20,players[id].y+10,width,height,vx,vy,"Player"+id));
+					}else if(change.equals("AssaultBullet")) {
+						bullets.add(new Bullet(players[id].x+20,players[id].y+10,width,height,vx,vy,"Player"+id));
+					}else if(change.equals("SniperBullet")){
+						bullets.add(new Bullet(players[id].x+20,players[id].y+10,width,height,vx,vy,"Player"+id));
+					}else if(change.equals("ShotgunBullet")) {
+						bullets.add(new Bullet(players[id].x+20,players[id].y+10,width,height,vx,vy,"Player"+id));
+					}else if(change.equals("TriShotBullet")) {
+						bullets.add(new Bullet(players[id].x+20,players[id].y+10,width,height,vx,vy,"Player"+id));
 					}
 				}
 				if(command.equals("Damage")) {
 					players[id].health-=Integer.parseInt(change);
 					players[id].animationStage=0;
-					bullets.remove(Integer.parseInt(messageParts[3]));
+					if(bullets.size()==1)bullets.remove(0);
+					else bullets.remove(Integer.parseInt(messageParts[3]));
 				}
 				if(command.equals("Dead")) {
 					System.out.println("Player "+id+" is Dead.");
@@ -281,6 +337,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				}
 				if(command.equals("Aim")) {
 					players[id].weaponRotation=Float.parseFloat(change);
+				}
+				if(command.equals("Class")) {
+					players[id].weaponClass=change;
 				}
 			}
 		}
@@ -310,6 +369,26 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			if(ready==Server.n) {
 				started=true;
 			}
+		}
+		if(e.getKeyCode()==49) { //Select MachineGun Class
+			players[myID].weaponClass="MachineGun";
+			c.write("Player"+myID+"UClassUMachineGun");
+		}
+		if(e.getKeyCode()==50) { //Select Assault Class
+			players[myID].weaponClass="Assault";
+			c.write("Player"+myID+"UClassUAssault");
+		}
+		if(e.getKeyCode()==51) { //Select Sniper Class
+			players[myID].weaponClass="Sniper";
+			c.write("Player"+myID+"UClassUSniper");
+		}
+		if(e.getKeyCode()==52) { //Select Shotgun Class
+			players[myID].weaponClass="Shotgun";
+			c.write("Player"+myID+"UClassUShotgun");
+		}
+		if(e.getKeyCode()==53) { //Select TriShot Class
+			players[myID].weaponClass="TriShot";
+			c.write("Player"+myID+"UClassUTriShot");
 		}
 	}
 	public void keyReleased(KeyEvent e) {

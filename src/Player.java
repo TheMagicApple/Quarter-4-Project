@@ -28,6 +28,8 @@ public class Player {
 
 	public float weaponRotation=0;
 	
+	public String weaponClass="";
+	
 	public Player() {
 		
 		try {
