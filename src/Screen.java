@@ -265,6 +265,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						height=15;
 					}
 					bullets.add(new Bullet(players[myID].x+20,players[myID].y+10,width,height,vx,vy,"Player"+myID));
+					System.out.println("SHOOT");
 					c.write("Player"+myID+"UShootU"+players[myID].weaponClass+"BulletU"+vx+" "+vy);
 					if(players[myID].weaponClass.equals("MachineGun")) {
 						weaponCooldown=5;
@@ -324,6 +325,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					players[id].name=change;
 				}
 				if(command.equals("Shoot")) {
+					System.out.println("SHOOT");
 					float vx=Float.parseFloat(messageParts[3].split(" ")[0]);
 					float vy=Float.parseFloat(messageParts[3].split(" ")[1]);
 					int width=5;
