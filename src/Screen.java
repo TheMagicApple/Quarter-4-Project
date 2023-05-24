@@ -46,6 +46,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	int weaponCooldown=0;
 	int mx=0;
 	int my=0;
+	int px=0;
+	int py=0;
 	int bulletCounter=0;
 	public Screen() throws IOException {
 		for(int i=0;i<players.length;i++) {
@@ -93,6 +95,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				g.setColor(new Color(94, 201, 255));
 				g.fillRoundRect(platform.x,platform.y,platform.width,platform.height,15,15);
 			}
+			g.setColor(new Color(255,0,0,100));
+			g.drawLine(px, py, (mx-px)*10, (my-py)*10);
 			
 		}
 	
@@ -110,6 +114,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			else {
 				players[myID].vx=0;
 			}
+			px=Math.round(players[myID].x+18);
+			py=Math.round(players[myID].y+10);
 			if(weaponCooldown>0) {
 				weaponCooldown--;
 			}
@@ -232,12 +238,13 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			if(shooting && !dead) {
 				if(weaponCooldown==0) {
 					bulletCounter++;
-					int px=Math.round(players[myID].x);
-					int py=Math.round(players[myID].y);
+					px=Math.round(players[myID].x+18);
+					py=Math.round(players[myID].y+10);
 					float deltax=mx-px;
 					float deltay=my-py;
 					float vx=(float)(deltax/Math.sqrt(deltax*deltax+deltay*deltay));
 					float vy=-1*(float)(deltay/Math.sqrt(deltax*deltax+deltay*deltay));
+					
 					vx*=10;
 					vy*=10;
 					int width=5;
@@ -436,12 +443,12 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		// TODO Auto-generated method stub
-		mx=e.getX();
-		my=e.getY()-30;
+		mx=e.getX()-5;
+		my=e.getY()-15;
 		int x=e.getX();
-		int y=e.getY()-30;
-		int px=Math.round(players[myID].x);
-		int py=Math.round(players[myID].y);
+		int y=e.getY();
+		px=Math.round(players[myID].x+18);
+		py=Math.round(players[myID].y+10);
 		float deltax=x-px;
 		float deltay=y-py;
 		if(deltax<0) {
@@ -455,11 +462,11 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		mx=e.getX();
-		my=e.getY()-30;
+		my=e.getY();
 		int x=e.getX();
-		int y=e.getY()-30;
-		int px=Math.round(players[myID].x);
-		int py=Math.round(players[myID].y);
+		int y=e.getY();
+		px=Math.round(players[myID].x+18);
+		py=Math.round(players[myID].y+10);
 		float deltax=x-px;
 		float deltay=y-py;
 		if(deltax<0) {
