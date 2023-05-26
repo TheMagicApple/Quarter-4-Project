@@ -383,7 +383,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					ready++;
 					if(ready==Server.n) {
 						started=true;
-						
+						c.write("Player"+myID+"UNameU"+players[myID].name);
 					}
 			}
 			else if(messageParts[0].charAt(0)=='J'){
@@ -466,7 +466,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				/*players[myID].name=myName;
 				c.write("Player"+myID+"UNameU"+players[myID].name);
 				enteringName=false;*/
-			}else if(e.getKeyCode()>=44 && e.getKeyCode()<=95){
+			}else if(e.getKeyCode()>=44 && e.getKeyCode()<=95 && players[myID].name.length()<15){
 				players[myID].name+=String.valueOf(e.getKeyChar());
 			}
 		}else {
