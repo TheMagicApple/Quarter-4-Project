@@ -118,8 +118,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			g.drawRoundRect(700,310,200,50,10,10);
 			g.setColor(new Color(30,30,30));
 			drawCenteredString(g,"Username", new Rectangle(650,280,200,30),new Font("Open Sans",Font.PLAIN,20));
-			drawCenteredString(g,myName, new Rectangle(700,310,200,50),new Font("Open Sans",Font.PLAIN,30));
-			drawCenteredString(g,"(Enter to Submit)", new Rectangle(700,360,200,30),new Font("Open Sans",Font.PLAIN,12));
+			drawCenteredString(g,players[myID].name, new Rectangle(700,310,200,50),new Font("Open Sans",Font.PLAIN,30));
+			//drawCenteredString(g,"(Enter to Submit)", new Rectangle(700,360,200,30),new Font("Open Sans",Font.PLAIN,12));
 		}else if(ended) {
 			g.setColor(new Color(30,30,30));
 			g.drawString(winner, 200,200);
@@ -383,6 +383,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					ready++;
 					if(ready==Server.n) {
 						started=true;
+						
 					}
 			}
 			else if(messageParts[0].charAt(0)=='J'){
@@ -459,14 +460,14 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	public void keyPressed(KeyEvent e) {
 		if(enteringName) {
 			if(e.getKeyCode()==8) {
-				myName=myName.substring(0,myName.length()-1);
+				players[myID].name=players[myID].name.substring(0,players[myID].name.length()-1);
 
 			}else if(e.getKeyCode()==10) {
-				players[myID].name=myName;
+				/*players[myID].name=myName;
 				c.write("Player"+myID+"UNameU"+players[myID].name);
-				enteringName=false;
+				enteringName=false;*/
 			}else if(e.getKeyCode()>=44 && e.getKeyCode()<=95){
-				myName+=String.valueOf(e.getKeyChar());
+				players[myID].name+=String.valueOf(e.getKeyChar());
 			}
 		}else {
 			if(e.getKeyCode()==65) {
