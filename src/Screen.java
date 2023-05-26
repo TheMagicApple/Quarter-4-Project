@@ -177,6 +177,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			}
 			if(started) {
 				frameCounter++;
+				if(frameCounter==1) {
+					c.write("Player"+myID+"UNameU"+players[myID].name);
+				}
 			}
 			if(deadPlayers.size()==Server.n-1 && !ended) {
 				if(!dead) {
@@ -383,7 +386,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					ready++;
 					if(ready==Server.n) {
 						started=true;
-						c.write("Player"+myID+"UNameU"+players[myID].name);
+						
 					}
 			}
 			else if(messageParts[0].charAt(0)=='J'){
