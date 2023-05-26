@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -45,6 +46,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	int leftGroundLevel=-1000;
 	int upGroundLevel=10000;
 	static boolean started=false;
+	static boolean ended=false;
 	static int clients=0;
 	static int ready=0;
 	boolean dead=false;
@@ -61,6 +63,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	boolean readyHover=false;
 	boolean read_e=false;
 	static DecimalFormat df=	new DecimalFormat("0.00");
+	static String winner="";
+	String myName="";
+	boolean enteringName=false;
 	public Screen() throws IOException {
 		for(int i=0;i<players.length;i++) {
 			players[i]=new Player();
@@ -107,8 +112,19 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			drawCenteredString(g,"Ready", new Rectangle(400,300,200,70),new Font("Open Sans Bold",Font.PLAIN,45));
 			g.setColor(Color.black);
 			drawCenteredString(g,ready+"/"+Server.n, new Rectangle(400,390,200,10),new Font("Open Sans Bold",Font.PLAIN,30));
+			if(enteringName) g.setColor(new Color(52, 122, 235));
+			else g.setColor(new Color(0,0,0,50));
+			((Graphics2D)g).setStroke(new BasicStroke(3));
+			g.drawRoundRect(700,310,200,50,10,10);
+			g.setColor(new Color(30,30,30));
+			drawCenteredString(g,"Username", new Rectangle(650,280,200,30),new Font("Open Sans",Font.PLAIN,20));
+			drawCenteredString(g,myName, new Rectangle(700,310,200,50),new Font("Open Sans",Font.PLAIN,30));
+			drawCenteredString(g,"(Enter to Submit)", new Rectangle(700,360,200,30),new Font("Open Sans",Font.PLAIN,12));
+		}else if(ended) {
+			g.setColor(new Color(30,30,30));
+			g.drawString(winner, 200,200);
 		}
-		if(started) {
+		else{
 			
 			g.setColor(new Color(220,220,220));
 			for(int i=25;i<1000;i+=50) {
@@ -154,181 +170,196 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	}
 	public void animate() throws InterruptedException{
 		while(true) {
+			if(players[myID].y>HEIGHT) {
+				dead=true;
+				deadPlayers.add(players[myID]);
+				c.write("Player"+myID+"UDead");
+			}
 			if(started) {
 				frameCounter++;
 			}
-			if(movingLeft && players[myID].x>leftGroundLevel) {
-				players[myID].vx=-3;
-				c.write("Player"+myID+"UMoveU"+players[myID].x+" "+players[myID].y);
-			}
-			else if(movingRight && players[myID].x+20<rightGroundLevel) {
-				players[myID].vx=3;
-				c.write("Player"+myID+"UMoveU"+players[myID].x+" "+players[myID].y);
-			}
-			else {
-				players[myID].vx=0;
-			}
-			px=Math.round(players[myID].x+10);
-			py=Math.round(players[myID].y+10);
-			deltax=mx-px;
-			deltay=my-py;
-			if(weaponCooldown>0) {
-				weaponCooldown--;
-			}
-			
-			for(int i=0;i<bullets.size();i++) {
-				boolean bad=false;
-				Bullet bullet=bullets.get(i);
-				if(bullet.x>1000f || bullet.x<0f) {
-					bullets.remove(i);
-					i--;
-					
-					bad=true;
+			if(deadPlayers.size()==Server.n-1 && !ended) {
+				if(!dead) {
+					ended=true;
+					winner="YOU are the WINNER!";
+					c.write("Player"+myID+"UWinner");
 				}
-				for(Platform plat:platforms) {
-					if(!bad && collision(Math.round(bullet.x),Math.round(bullet.y),5,5,plat.x,plat.y,plat.width,plat.height)){
+			}
+			if(!dead) {
+					
+				
+				if(movingLeft && players[myID].x>leftGroundLevel) {
+					players[myID].vx=-3;
+					c.write("Player"+myID+"UMoveU"+players[myID].x+" "+players[myID].y);
+				}
+				else if(movingRight && players[myID].x+20<rightGroundLevel) {
+					players[myID].vx=3;
+					c.write("Player"+myID+"UMoveU"+players[myID].x+" "+players[myID].y);
+				}
+				else {
+					players[myID].vx=0;
+				}
+				px=Math.round(players[myID].x+10);
+				py=Math.round(players[myID].y+10);
+				deltax=mx-px;
+				deltay=my-py;
+				if(weaponCooldown>0) {
+					weaponCooldown--;
+				}
+				
+				for(int i=0;i<bullets.size();i++) {
+					boolean bad=false;
+					Bullet bullet=bullets.get(i);
+					if(bullet.x>1000f || bullet.x<0f) {
 						bullets.remove(i);
 						i--;
+						
 						bad=true;
 					}
-				}
-				if(collision(Math.round(bullet.x),Math.round(bullet.y),bullet.width,bullet.height,Math.round(players[myID].x),Math.round(players[myID].y),20,20)){
-					if(!bad && Integer.parseInt(String.valueOf(bullet.player.charAt(6)))!=myID) {
-						String weaponClass=players[Integer.parseInt(String.valueOf(bullet.player.charAt(6)))].weaponClass;
-						if(weaponClass.equals("MachineGun")) {
-							players[myID].health-=MACHINEGUNDAMAGE;
-							c.write("Player"+myID+"UDamageU"+MACHINEGUNDAMAGE+"U"+(i));
-						}else if(weaponClass.equals("Assault")) {
-							players[myID].health-=ASSAULTDAMAGE;
-							c.write("Player"+myID+"UDamageU"+ASSAULTDAMAGE+"U"+(i));
-						}else if(weaponClass.equals("Sniper")) {
-							players[myID].health-=SNIPERDAMAGE;
-							c.write("Player"+myID+"UDamageU"+SNIPERDAMAGE+"U"+(i));
-						}else if(weaponClass.equals("Shotgun")) {
-							players[myID].health-=SHOTGUNDAMAGE;
-							c.write("Player"+myID+"UDamageU"+SHOTGUNDAMAGE+"U"+(i));
-						}else if(weaponClass.equals("TriShot")) {
-							players[myID].health-=TRISHOTDAMAGE;
-							c.write("Player"+myID+"UDamageU"+TRISHOTDAMAGE+"U"+(i));
-						}
-						players[myID].animationStage=0;
-						bullets.remove(i);
-						i--;
-						if(players[myID].health<=0) {
-							System.out.println("I AM DEAD.");
-							dead=true;
-							deadPlayers.add(players[myID]);
-							c.write("Player"+myID+"UDead");
+					for(Platform plat:platforms) {
+						if(!bad && collision(Math.round(bullet.x),Math.round(bullet.y),5,5,plat.x,plat.y,plat.width,plat.height)){
+							bullets.remove(i);
+							i--;
+							bad=true;
 						}
 					}
-				}
-			}
-			//COLLISIONS
-			int playerXLeft=Math.round(players[myID].x);
-			int playerXRight=Math.round(players[myID].x)+20;
-			int playerYLeft=Math.round(players[myID].y);
-			int playerYRight=Math.round(players[myID].y)+20;
-			if(players[myID].vy>0 && players[myID].y+20>groundLevel) {
-				players[myID].y=groundLevel-20;
-				players[myID].vy=0;
-				players[myID].onGround=true;
-			}
-			if(players[myID].y+20<groundLevel) {
-				players[myID].onGround=false;
-			}
-			if(players[myID].vy<0 && players[myID].y<upGroundLevel) {
-				players[myID].y=upGroundLevel;
-				players[myID].vy=0;
-			}
-			if(players[myID].vx>=0 && players[myID].x+20>rightGroundLevel) {
-				players[myID].x=rightGroundLevel-20;
-				players[myID].vx=0;
-			}
-			if(players[myID].vx<=0 && players[myID].x<leftGroundLevel) {
-				players[myID].x=leftGroundLevel;
-				players[myID].vx=0;
-			}
-			
-			//VERTICAL COLLISION
-			int newGroundLevel=Integer.MAX_VALUE;
-			for(Platform plat:platforms) {
-				if((plat.x<=playerXLeft && plat.x+plat.width>=playerXLeft) || (plat.x<=playerXRight && plat.x+plat.width>=playerXRight)) {
-					if(playerYRight<=plat.y) {
-						if(plat.y<newGroundLevel) {
-							newGroundLevel=plat.y;
+					if(collision(Math.round(bullet.x),Math.round(bullet.y),bullet.width,bullet.height,Math.round(players[myID].x),Math.round(players[myID].y),20,20)){
+						if(!bad && Integer.parseInt(String.valueOf(bullet.player.charAt(6)))!=myID) {
+							String weaponClass=players[Integer.parseInt(String.valueOf(bullet.player.charAt(6)))].weaponClass;
+							if(weaponClass.equals("MachineGun")) {
+								players[myID].health-=MACHINEGUNDAMAGE;
+								c.write("Player"+myID+"UDamageU"+MACHINEGUNDAMAGE+"U"+(i));
+							}else if(weaponClass.equals("Assault")) {
+								players[myID].health-=ASSAULTDAMAGE;
+								c.write("Player"+myID+"UDamageU"+ASSAULTDAMAGE+"U"+(i));
+							}else if(weaponClass.equals("Sniper")) {
+								players[myID].health-=SNIPERDAMAGE;
+								c.write("Player"+myID+"UDamageU"+SNIPERDAMAGE+"U"+(i));
+							}else if(weaponClass.equals("Shotgun")) {
+								players[myID].health-=SHOTGUNDAMAGE;
+								c.write("Player"+myID+"UDamageU"+SHOTGUNDAMAGE+"U"+(i));
+							}else if(weaponClass.equals("TriShot")) {
+								players[myID].health-=TRISHOTDAMAGE;
+								c.write("Player"+myID+"UDamageU"+TRISHOTDAMAGE+"U"+(i));
+							}
+							players[myID].animationStage=0;
+							bullets.remove(i);
+							i--;
+							if(players[myID].health<=0) {
+								dead=true;
+								deadPlayers.add(players[myID]);
+								c.write("Player"+myID+"UDead");
+							}
 						}
 					}
 				}
-			}
-			groundLevel=newGroundLevel;
-			
-			newGroundLevel=-Integer.MAX_VALUE;
-			for(Platform plat:platforms) {
-				if((plat.x<playerXLeft && plat.x+plat.width>playerXLeft) || (plat.x<playerXRight && plat.x+plat.width>playerXRight)) {
-					if(playerYLeft>plat.y) {
-						if(plat.y>newGroundLevel) {
-							newGroundLevel=plat.y+plat.height;
+				//COLLISIONS
+				int playerXLeft=Math.round(players[myID].x);
+				int playerXRight=Math.round(players[myID].x)+20;
+				int playerYLeft=Math.round(players[myID].y);
+				int playerYRight=Math.round(players[myID].y)+20;
+				if(players[myID].vy>0 && players[myID].y+20>groundLevel) {
+					players[myID].y=groundLevel-20;
+					players[myID].vy=0;
+					players[myID].onGround=true;
+				}
+				if(players[myID].y+20<groundLevel) {
+					players[myID].onGround=false;
+				}
+				if(players[myID].vy<0 && players[myID].y<upGroundLevel) {
+					players[myID].y=upGroundLevel;
+					players[myID].vy=0;
+				}
+				if(players[myID].vx>=0 && players[myID].x+20>rightGroundLevel) {
+					players[myID].x=rightGroundLevel-20;
+					players[myID].vx=0;
+				}
+				if(players[myID].vx<=0 && players[myID].x<leftGroundLevel) {
+					players[myID].x=leftGroundLevel;
+					players[myID].vx=0;
+				}
+				
+				//VERTICAL COLLISION
+				int newGroundLevel=Integer.MAX_VALUE;
+				for(Platform plat:platforms) {
+					if((plat.x<=playerXLeft && plat.x+plat.width>=playerXLeft) || (plat.x<=playerXRight && plat.x+plat.width>=playerXRight)) {
+						if(playerYRight<=plat.y) {
+							if(plat.y<newGroundLevel) {
+								newGroundLevel=plat.y;
+							}
 						}
 					}
 				}
-			}
-			upGroundLevel=newGroundLevel;
-			
-			//RIGHT COLLISION
-			newGroundLevel=Integer.MAX_VALUE;
-			for(Platform plat:platforms) {
-				if((plat.y<=playerYLeft && plat.y+plat.height>=playerYLeft) || (plat.y<=playerYRight && plat.y+plat.height>=playerYRight)) {
-					if(playerXRight<=plat.x) {
-						if(plat.x<newGroundLevel) {
-							newGroundLevel=plat.x;
+				groundLevel=newGroundLevel;
+				
+				newGroundLevel=-Integer.MAX_VALUE;
+				for(Platform plat:platforms) {
+					if((plat.x<playerXLeft && plat.x+plat.width>playerXLeft) || (plat.x<playerXRight && plat.x+plat.width>playerXRight)) {
+						if(playerYLeft>plat.y) {
+							if(plat.y>newGroundLevel) {
+								newGroundLevel=plat.y+plat.height;
+							}
 						}
 					}
 				}
-			}
-			rightGroundLevel=newGroundLevel;
-			
-			//LEFT COLLISION
-			newGroundLevel=-Integer.MAX_VALUE;
-			for(Platform plat:platforms) {
-				if((plat.y<=playerYLeft && plat.y+plat.height>=playerYLeft) || (plat.y<=playerYRight && plat.y+plat.height>=playerYRight)) {
-					if(playerXLeft>=plat.x+plat.width) {
-						if(plat.x+plat.width>newGroundLevel) {
-							newGroundLevel=plat.x+plat.width;
+				upGroundLevel=newGroundLevel;
+				
+				//RIGHT COLLISION
+				newGroundLevel=Integer.MAX_VALUE;
+				for(Platform plat:platforms) {
+					if((plat.y<=playerYLeft && plat.y+plat.height>=playerYLeft) || (plat.y<=playerYRight && plat.y+plat.height>=playerYRight)) {
+						if(playerXRight<=plat.x) {
+							if(plat.x<newGroundLevel) {
+								newGroundLevel=plat.x;
+							}
 						}
 					}
 				}
-			}
-			leftGroundLevel=newGroundLevel;
-			//frame counter: grace period for 500/100=5 seconds
-			if(shooting && !dead && frameCounter>=500) {
-				if(weaponCooldown==0) {
-					bulletCounter++;
-					//System.out.println(px+" "+py+" "+mx+" "+my+" "+deltax+" "+deltay);
-					float vx=(float)(deltax/Math.sqrt(deltax*deltax+deltay*deltay));
-					float vy=-1*(float)(deltay/Math.sqrt(deltax*deltax+deltay*deltay));
-					vx*=10;
-					vy*=10;
-					int width=5;
-					int height=5;
-					if(players[myID].weaponClass.equals("Shotgun")) {
-						width=15;
-						height=15;
+				rightGroundLevel=newGroundLevel;
+				
+				//LEFT COLLISION
+				newGroundLevel=-Integer.MAX_VALUE;
+				for(Platform plat:platforms) {
+					if((plat.y<=playerYLeft && plat.y+plat.height>=playerYLeft) || (plat.y<=playerYRight && plat.y+plat.height>=playerYRight)) {
+						if(playerXLeft>=plat.x+plat.width) {
+							if(plat.x+plat.width>newGroundLevel) {
+								newGroundLevel=plat.x+plat.width;
+							}
+						}
 					}
-					bullets.add(new Bullet(players[myID].x+18,players[myID].y+10,width,height,vx,vy,"Player"+myID));
-					c.write("Player"+myID+"UShootU"+players[myID].weaponClass+"BulletU"+vx+" "+vy);
-					if(players[myID].weaponClass.equals("MachineGun")) {
-						weaponCooldown=5;
-					}else if(players[myID].weaponClass.equals("Assault")){
-						weaponCooldown=15;
-					}else if(players[myID].weaponClass.equals("Sniper")) {
-						weaponCooldown=70;
-					}else if(players[myID].weaponClass.equals("Shotgun")) {
-						weaponCooldown=30;
-					}else if(players[myID].weaponClass.equals("TriShot")) {
-						if(bulletCounter%3==0) {
-							weaponCooldown=50;
-						}else {
-							weaponCooldown=3;
+				}
+				leftGroundLevel=newGroundLevel;
+				//frame counter: grace period for 500/100=5 seconds
+				if(shooting && !dead && frameCounter>=500) {
+					if(weaponCooldown==0) {
+						bulletCounter++;
+						//System.out.println(px+" "+py+" "+mx+" "+my+" "+deltax+" "+deltay);
+						float vx=(float)(deltax/Math.sqrt(deltax*deltax+deltay*deltay));
+						float vy=-1*(float)(deltay/Math.sqrt(deltax*deltax+deltay*deltay));
+						vx*=10;
+						vy*=10;
+						int width=5;
+						int height=5;
+						if(players[myID].weaponClass.equals("Shotgun")) {
+							width=15;
+							height=15;
+						}
+						bullets.add(new Bullet(players[myID].x+18,players[myID].y+10,width,height,vx,vy,"Player"+myID));
+						c.write("Player"+myID+"UShootU"+players[myID].weaponClass+"BulletU"+vx+" "+vy);
+						if(players[myID].weaponClass.equals("MachineGun")) {
+							weaponCooldown=5;
+						}else if(players[myID].weaponClass.equals("Assault")){
+							weaponCooldown=15;
+						}else if(players[myID].weaponClass.equals("Sniper")) {
+							weaponCooldown=70;
+						}else if(players[myID].weaponClass.equals("Shotgun")) {
+							weaponCooldown=30;
+						}else if(players[myID].weaponClass.equals("TriShot")) {
+							if(bulletCounter%3==0) {
+								weaponCooldown=50;
+							}else {
+								weaponCooldown=3;
+							}
 						}
 					}
 				}
@@ -363,7 +394,11 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				String command=messageParts[1];
 				String change="";
 				if(messageParts.length>2) change=messageParts[2];
-				
+				if(command.equals("Winner") && !ended) {
+					ended=true;
+					winner=players[id].name+" is the WINNER!";
+					
+				}
 				if(command.equals("Move")) {
 					float x=Float.parseFloat(change.split(" ")[0]);
 					float y=Float.parseFloat(change.split(" ")[1]);
@@ -406,7 +441,6 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					}
 				}
 				if(command.equals("Dead")) {
-					System.out.println("Player "+id+" is Dead.");
 					deadPlayers.add(players[id]);
 				}
 				if(command.equals("Aim")) {
@@ -423,39 +457,52 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		
 	}
 	public void keyPressed(KeyEvent e) {
-		if(e.getKeyCode()==65) {
-			movingLeft=true;
-		}
-		if(e.getKeyCode()==68) {
-			movingRight=true;
-		}
-		if(e.getKeyCode()==87 && players[myID].onGround) {
-			players[myID].vy=-6;
-			players[myID].onGround=false;
-		}
-		if(e.getKeyCode()==10) { //Press Enter to Automatically Fill Name as PlayerN
-			players[myID].name="Player"+myID;
-			c.write("Player"+myID+"UNameU"+players[myID].name);
-		}
-		if(e.getKeyCode()==49) { //Select MachineGun Class
-			players[myID].weaponClass="MachineGun";
-			c.write("Player"+myID+"UClassUMachineGun");
-		}
-		if(e.getKeyCode()==50) { //Select Assault Class
-			players[myID].weaponClass="Assault";
-			c.write("Player"+myID+"UClassUAssault");
-		}
-		if(e.getKeyCode()==51) { //Select Sniper Class
-			players[myID].weaponClass="Sniper";
-			c.write("Player"+myID+"UClassUSniper");
-		}
-		if(e.getKeyCode()==52) { //Select Shotgun Class
-			players[myID].weaponClass="Shotgun";
-			c.write("Player"+myID+"UClassUShotgun");
-		}
-		if(e.getKeyCode()==53) { //Select TriShot Class
-			players[myID].weaponClass="TriShot";
-			c.write("Player"+myID+"UClassUTriShot");
+		if(enteringName) {
+			if(e.getKeyCode()==8) {
+				myName=myName.substring(0,myName.length()-1);
+
+			}else if(e.getKeyCode()==10) {
+				players[myID].name=myName;
+				c.write("Player"+myID+"UNameU"+players[myID].name);
+				enteringName=false;
+			}else if(e.getKeyCode()>=44 && e.getKeyCode()<=95){
+				myName+=String.valueOf(e.getKeyChar());
+			}
+		}else {
+			if(e.getKeyCode()==65) {
+				movingLeft=true;
+			}
+			if(e.getKeyCode()==68) {
+				movingRight=true;
+			}
+			if(e.getKeyCode()==87 && players[myID].onGround) {
+				players[myID].vy=-6;
+				players[myID].onGround=false;
+			}
+			/*if(e.getKeyCode()==10) { //Press Enter to Automatically Fill Name as PlayerN
+				players[myID].name="Player"+myID;
+				c.write("Player"+myID+"UNameU"+players[myID].name);
+			}*/
+			if(e.getKeyCode()==49) { //Select MachineGun Class
+				players[myID].weaponClass="MachineGun";
+				c.write("Player"+myID+"UClassUMachineGun");
+			}
+			if(e.getKeyCode()==50) { //Select Assault Class
+				players[myID].weaponClass="Assault";
+				c.write("Player"+myID+"UClassUAssault");
+			}
+			if(e.getKeyCode()==51) { //Select Sniper Class
+				players[myID].weaponClass="Sniper";
+				c.write("Player"+myID+"UClassUSniper");
+			}
+			if(e.getKeyCode()==52) { //Select Shotgun Class
+				players[myID].weaponClass="Shotgun";
+				c.write("Player"+myID+"UClassUShotgun");
+			}
+			if(e.getKeyCode()==53) { //Select TriShot Class
+				players[myID].weaponClass="TriShot";
+				c.write("Player"+myID+"UClassUTriShot");
+			}
 		}
 	}
 	public void keyReleased(KeyEvent e) {
@@ -484,6 +531,12 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			} 
 			
 		}
+		if(e.getX()>=700 && e.getX()<=900 && e.getY()>=340 && e.getY()<=390 && !started) {
+			enteringName=true;
+		}else {
+			enteringName=false;
+		}
+		
 	}
 	public Dimension getPreferredSize() {
 		return new Dimension(WIDTH,HEIGHT);
