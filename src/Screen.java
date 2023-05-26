@@ -528,6 +528,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		shooting=true;
 		if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=370 && !read_e) {
 			c.write("Ready");
+			enteringName=false;
 			ready++;
 			read_e=true;
 			if(ready==Server.n) {
