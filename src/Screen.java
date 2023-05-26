@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +59,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	int bulletCounter=0;
 	int frameCounter=0;
 	boolean readyHover=false;
+	boolean read_e=false;
+	static DecimalFormat df=	new DecimalFormat("0.00");
 	public Screen() throws IOException {
 		for(int i=0;i<players.length;i++) {
 			players[i]=new Player();
@@ -96,7 +99,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			g.fillRoundRect(300,200,400,50,10,10);
 			g.setColor(Color.white);
 			drawCenteredString(g,"Players Connected: "+clients+"/"+Server.n, new Rectangle(300,200,400,50),new Font("Open Sans Bold",Font.PLAIN,30));
-			if(readyHover) g.setColor(new Color(47, 110, 212));
+			if(read_e)  g.setColor(new Color(57, 191, 86));
+			else if(readyHover) g.setColor(new Color(47, 110, 212));
 			else g.setColor(new Color(52, 122, 235));
 			g.fillRoundRect(400,300,200,70,10,10);
 			g.setColor(Color.white);
@@ -105,6 +109,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			drawCenteredString(g,ready+"/"+Server.n, new Rectangle(400,390,200,10),new Font("Open Sans Bold",Font.PLAIN,30));
 		}
 		if(started) {
+			
 			g.setColor(new Color(220,220,220));
 			for(int i=25;i<1000;i+=50) {
 				g.fillRect(i, 0, 2, 1000);
@@ -129,7 +134,13 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				g.setColor(new Color(94, 201, 255));
 				g.fillRoundRect(platform.x,platform.y,platform.width,platform.height,15,15);
 			}
-			
+			g.setColor(new Color(30,30,30));
+			if(frameCounter<=500) {
+				drawCenteredString(g,""+df.format((500-frameCounter)/100f),new Rectangle(0,0,1000,200),new Font("Open Sans Bold",Font.PLAIN,90));
+			}else if(frameCounter<=550) {
+				g.setColor(new Color(57, 191, 86));
+				drawCenteredString(g,"GO!",new Rectangle(0,0,1000,200),new Font("Open Sans Bold",Font.PLAIN,90));
+			}
 			
 		}
 	
@@ -464,12 +475,14 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	@Override
 	public void mousePressed(MouseEvent e) {
 		shooting=true;
-		if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=370) {
+		if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=370 && !read_e) {
 			c.write("Ready");
 			ready++;
+			read_e=true;
 			if(ready==Server.n) {
 				started=true;
-			}
+			} 
+			
 		}
 	}
 	public Dimension getPreferredSize() {
@@ -537,7 +550,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)));
 			}
 		}else {
-			if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=370) {
+			if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=400) {
 				readyHover=true;
 			}else {
 				readyHover=false;
