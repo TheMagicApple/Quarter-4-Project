@@ -177,9 +177,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			}
 			if(started) {
 				frameCounter++;
-				if(frameCounter==1) {
-					c.write("Player"+myID+"UNameU"+players[myID].name);
-				}
+			
 			}
 			if(deadPlayers.size()==Server.n-1 && !ended) {
 				if(!dead) {
@@ -464,13 +462,14 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		if(enteringName) {
 			if(e.getKeyCode()==8) {
 				players[myID].name=players[myID].name.substring(0,players[myID].name.length()-1);
-
+				c.write("Player"+myID+"UNameU"+players[myID].name);
 			}else if(e.getKeyCode()==10) {
 				/*players[myID].name=myName;
 				c.write("Player"+myID+"UNameU"+players[myID].name);
 				enteringName=false;*/
 			}else if(e.getKeyCode()>=44 && e.getKeyCode()<=95 && players[myID].name.length()<15){
 				players[myID].name+=String.valueOf(e.getKeyChar());
+				c.write("Player"+myID+"UNameU"+players[myID].name);
 			}
 		}else {
 			if(e.getKeyCode()==65) {
