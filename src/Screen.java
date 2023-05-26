@@ -1,7 +1,10 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,9 +15,11 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JPanel;
-
+import java.awt.font.TextAttribute;
 public class Screen extends JPanel implements KeyListener,MouseListener,MouseMotionListener{
 	static Player[] players=new Player[Server.n];
 	static int myID;
@@ -48,10 +53,15 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	int my=0;
 	int px=0;
 	int py=0;
+	float deltax=0;
+	float deltay=0;
 	int bulletCounter=0;
+	int frameCounter=0;
+	boolean readyHover=false;
 	public Screen() throws IOException {
 		for(int i=0;i<players.length;i++) {
 			players[i]=new Player();
+			players[i].x=100+200*i;
 		}
 		c.go();
 		
@@ -67,11 +77,32 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	public void paintComponent(Graphics g) {
 		((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 		super.paintComponent(g);
-	
 		if(!started) {
-			g.drawString("Poly Party!", 200,200);
-			g.drawString("Players Connected: "+clients+"/"+Server.n, 200,300);
-			g.drawString("Players Ready: "+ready+"/"+Server.n,150,350);
+			Map<TextAttribute, Object> attributes = new HashMap<TextAttribute, Object>();
+			attributes.put(TextAttribute.TRACKING, -0.02);
+			g.setFont(new Font("Open Sans Bold",Font.PLAIN,100).deriveFont(attributes));
+			
+			g.drawString("P   LY", 170,150);
+			Map<TextAttribute, Object> attributes2 = new HashMap<TextAttribute, Object>();
+			attributes2.put(TextAttribute.TRACKING, 0.04);
+			g.setFont(new Font("Open Sans Bold",Font.PLAIN,100).deriveFont(attributes2));
+			g.drawString("P  RTY!", 470,150);
+			g.setColor(new Color(255,0,0));
+			g.fillOval(235,80,70,70);
+			g.setColor(new Color(52, 122, 235));
+			g.fillPolygon(new int[] {525,560,595},new int[] {150,80,150},3);
+			g.setFont(new Font("Open Sans",Font.PLAIN,30));
+			g.setColor(new Color(255,0,0));
+			g.fillRoundRect(300,200,400,50,10,10);
+			g.setColor(Color.white);
+			drawCenteredString(g,"Players Connected: "+clients+"/"+Server.n, new Rectangle(300,200,400,50),new Font("Open Sans Bold",Font.PLAIN,30));
+			if(readyHover) g.setColor(new Color(47, 110, 212));
+			else g.setColor(new Color(52, 122, 235));
+			g.fillRoundRect(400,300,200,70,10,10);
+			g.setColor(Color.white);
+			drawCenteredString(g,"Ready", new Rectangle(400,300,200,70),new Font("Open Sans Bold",Font.PLAIN,45));
+			g.setColor(Color.black);
+			drawCenteredString(g,ready+"/"+Server.n, new Rectangle(400,390,200,10),new Font("Open Sans Bold",Font.PLAIN,30));
 		}
 		if(started) {
 			g.setColor(new Color(220,220,220));
@@ -81,6 +112,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			for(int i=25;i<500;i+=50) {
 				g.fillRect(0, i, 1000, 2);
 			}
+			
+			g.setColor(new Color(255,0,0,120));
+			g.drawLine(px+8, py, px+8+Math.round(deltax)*10, py+Math.round(deltay)*10);
 			for(Player player:players) {
 				if(!deadPlayers.contains(player)) player.draw(g);
 			}
@@ -95,14 +129,23 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				g.setColor(new Color(94, 201, 255));
 				g.fillRoundRect(platform.x,platform.y,platform.width,platform.height,15,15);
 			}
-			g.setColor(new Color(255,0,0,100));
-			g.drawLine(px, py, (mx-px)*10, (my-py)*10);
+			
 			
 		}
 	
 	}
+	public void drawCenteredString(Graphics g, String text, Rectangle rect, Font font) {
+	    FontMetrics metrics = g.getFontMetrics(font);
+	    int x = rect.x + (rect.width - metrics.stringWidth(text)) / 2;
+	    int y = rect.y + ((rect.height - metrics.getHeight()) / 2) + metrics.getAscent();
+	    g.setFont(font);
+	    g.drawString(text, x, y);
+	}
 	public void animate() throws InterruptedException{
 		while(true) {
+			if(started) {
+				frameCounter++;
+			}
 			if(movingLeft && players[myID].x>leftGroundLevel) {
 				players[myID].vx=-3;
 				c.write("Player"+myID+"UMoveU"+players[myID].x+" "+players[myID].y);
@@ -114,19 +157,19 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			else {
 				players[myID].vx=0;
 			}
-			px=Math.round(players[myID].x+18);
+			px=Math.round(players[myID].x+10);
 			py=Math.round(players[myID].y+10);
+			deltax=mx-px;
+			deltay=my-py;
 			if(weaponCooldown>0) {
 				weaponCooldown--;
 			}
-			System.out.println("BULLETS: "+bullets.size());
 			
 			for(int i=0;i<bullets.size();i++) {
 				boolean bad=false;
 				Bullet bullet=bullets.get(i);
 				if(bullet.x>1000f || bullet.x<0f) {
 					bullets.remove(i);
-					System.out.println("REMOVED BULLET "+i+" BC OUT OF BOUNDS");
 					i--;
 					
 					bad=true;
@@ -134,7 +177,6 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				for(Platform plat:platforms) {
 					if(!bad && collision(Math.round(bullet.x),Math.round(bullet.y),5,5,plat.x,plat.y,plat.width,plat.height)){
 						bullets.remove(i);
-						System.out.println("REMOVED BULLET "+i+" BC TOUCHED PLATFORM");
 						i--;
 						bad=true;
 					}
@@ -160,7 +202,6 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						}
 						players[myID].animationStage=0;
 						bullets.remove(i);
-						System.out.println("REMOVED BULLET "+i+" BC TOUCHED PLAYER");
 						i--;
 						if(players[myID].health<=0) {
 							System.out.println("I AM DEAD.");
@@ -247,12 +288,11 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				}
 			}
 			leftGroundLevel=newGroundLevel;
-			
-			if(shooting && !dead) {
+			//frame counter: grace period for 500/100=5 seconds
+			if(shooting && !dead && frameCounter>=500) {
 				if(weaponCooldown==0) {
 					bulletCounter++;
-					float deltax=mx-px;
-					float deltay=my-py;
+					//System.out.println(px+" "+py+" "+mx+" "+my+" "+deltax+" "+deltay);
 					float vx=(float)(deltax/Math.sqrt(deltax*deltax+deltay*deltay));
 					float vy=-1*(float)(deltay/Math.sqrt(deltax*deltax+deltay*deltay));
 					vx*=10;
@@ -264,7 +304,6 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						height=15;
 					}
 					bullets.add(new Bullet(players[myID].x+18,players[myID].y+10,width,height,vx,vy,"Player"+myID));
-					System.out.println("I SHOOT");
 					c.write("Player"+myID+"UShootU"+players[myID].weaponClass+"BulletU"+vx+" "+vy);
 					if(players[myID].weaponClass.equals("MachineGun")) {
 						weaponCooldown=5;
@@ -324,7 +363,6 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					players[id].name=change;
 				}
 				if(command.equals("Shoot")) {
-					System.out.println("YOU SHOOT");
 					float vx=Float.parseFloat(messageParts[3].split(" ")[0]);
 					float vy=Float.parseFloat(messageParts[3].split(" ")[1]);
 					int width=5;
@@ -350,12 +388,10 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					players[id].animationStage=0;
 					if(bullets.size()==1) {
 						bullets.remove(0);
-						System.out.println("REMOVED BULLET 0 BC TOUCHED PLAYER");
 					}
 					else {
 						if (Integer.parseInt(messageParts[3]) < bullets.size())
 							bullets.remove(Integer.parseInt(messageParts[3]));
-						System.out.println("REMOVED BULLET "+Integer.parseInt(messageParts[3])+" BC TOUCHED PLAYER");
 					}
 				}
 				if(command.equals("Dead")) {
@@ -389,13 +425,6 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		if(e.getKeyCode()==10) { //Press Enter to Automatically Fill Name as PlayerN
 			players[myID].name="Player"+myID;
 			c.write("Player"+myID+"UNameU"+players[myID].name);
-		}
-		if(e.getKeyCode()==8) { //Press Backspace to Ready Up
-			c.write("Ready");
-			ready++;
-			if(ready==Server.n) {
-				started=true;
-			}
 		}
 		if(e.getKeyCode()==49) { //Select MachineGun Class
 			players[myID].weaponClass="MachineGun";
@@ -435,7 +464,13 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	@Override
 	public void mousePressed(MouseEvent e) {
 		shooting=true;
-		
+		if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=370) {
+			c.write("Ready");
+			ready++;
+			if(ready==Server.n) {
+				started=true;
+			}
+		}
 	}
 	public Dimension getPreferredSize() {
 		return new Dimension(WIDTH,HEIGHT);
@@ -463,11 +498,34 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		if(started) {
-			mx=e.getX();
-			my=e.getY();
-			int x=e.getX();
-			int y=e.getY();
+			mx=e.getX()-7;
+			my=e.getY()-30;
+			int x=e.getX()-7;
+			int y=e.getY()-30;
 			px=Math.round(players[myID].x+18);
+			py=Math.round(players[myID].y+10);
+			float deltax=x-px;
+			float deltay=y-py;
+			//System.out.println(x+" "+y+" "+px+" "+py+" "+deltax+" "+deltay);
+			if(deltax<0) {
+				players[myID].weaponRotation=(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180));
+				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180)));
+			}else {
+				players[myID].weaponRotation=(float) Math.atan(this.deltay/this.deltax);
+				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)));
+			}
+		}
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		if(started) {
+			mx=e.getX()-7;
+			my=e.getY()-30;
+			int x=e.getX()-7;
+			int y=e.getY()-30;
+			px=Math.round(players[myID].x+10);
 			py=Math.round(players[myID].y+10);
 			float deltax=x-px;
 			float deltay=y-py;
@@ -478,27 +536,11 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				players[myID].weaponRotation=(float) Math.atan(deltay/deltax);
 				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)));
 			}
-		}
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		if(started) {
-			mx=e.getX();
-			my=e.getY();
-			int x=e.getX();
-			int y=e.getY();
-			px=Math.round(players[myID].x+18);
-			py=Math.round(players[myID].y+10);
-			float deltax=x-px;
-			float deltay=y-py;
-			if(deltax<0) {
-				players[myID].weaponRotation=(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180));
-				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)+Math.toRadians(180)));
+		}else {
+			if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=370) {
+				readyHover=true;
 			}else {
-				players[myID].weaponRotation=(float) Math.atan(deltay/deltax);
-				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)));
+				readyHover=false;
 			}
 		}
 		

@@ -82,9 +82,9 @@ public class Player {
 		
 		Graphics2D gg=(Graphics2D)g;
 		gg.setStroke(new BasicStroke(1));
-		g.fillRect(Math.round(x), Math.round(y)-20, Math.round(20*(health/100f)), 5);
+		g.fillRect(Math.round(x), Math.round(y)-10, Math.round(20*(health/100f)), 5);
 		g.setColor(new Color(0,0,0));
-		g.drawRect(Math.round(x), Math.round(y)-20, 20, 5);
+		g.drawRect(Math.round(x), Math.round(y)-10, 20, 5);
 		g.setColor(new Color(0,0,0));
 		gg.rotate(weaponRotation,Math.round(x)+18,Math.round(y)+10);
 		gg.setStroke(new BasicStroke(2));

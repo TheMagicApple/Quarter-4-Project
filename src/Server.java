@@ -21,8 +21,6 @@ public class Server {
 		for(ConnectedClient client:clients) {
 			client.thread.start();
 		}
-	
-		
 	}
 	static void broadcast(String s,PrintWriter self) {
 		for(ConnectedClient client:clients) {
