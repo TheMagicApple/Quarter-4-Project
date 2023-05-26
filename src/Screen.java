@@ -73,14 +73,14 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		}
 		c.go();
 		
-		platforms.add(new Platform(0,400,700,100));
-		platforms.add(new Platform(800,400,200,100));
-		platforms.add(new Platform(200,320,400,100));
-		platforms.add(new Platform(10,360,50,50));
-		platforms.add(new Platform(825,330,50,20));
-		platforms.add(new Platform(725,270,50,20));
-		platforms.add(new Platform(305,290,70,50));
-		platforms.add(new Platform(940,220,100,400));
+		platforms.add(new Platform(0,400,0,400,700,100));
+		platforms.add(new Platform(800,400,800,400,200,100));
+		platforms.add(new Platform(200,320,200,320,400,100));
+		platforms.add(new Platform(10,360,10,360,50,50));
+		platforms.add(new Platform(825,330,825,330,50,20));
+		platforms.add(new Platform(725,270,725,270,50,20));
+		platforms.add(new Platform(305,290,305,320,70,50));
+		platforms.add(new Platform(940,220,940,220,100,400));
 	}
 	public void paintComponent(Graphics g) {
 		((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
@@ -148,7 +148,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			}
 			for(Platform platform:platforms) {
 				g.setColor(new Color(94, 201, 255));
-				g.fillRoundRect(platform.x,platform.y,platform.width,platform.height,15,15);
+				g.fillRoundRect(Math.round(platform.x),Math.round(platform.y),platform.width,platform.height,15,15);
+				platform.update();
 			}
 			g.setColor(new Color(30,30,30));
 			if(frameCounter<=500) {
@@ -218,7 +219,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						bad=true;
 					}
 					for(Platform plat:platforms) {
-						if(!bad && collision(Math.round(bullet.x),Math.round(bullet.y),5,5,plat.x,plat.y,plat.width,plat.height)){
+						if(!bad && collision(Math.round(bullet.x),Math.round(bullet.y),5,5,Math.round(plat.x),Math.round(plat.y),plat.width,plat.height)){
 							bullets.remove(i);
 							i--;
 							bad=true;
@@ -259,7 +260,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				int playerXRight=Math.round(players[myID].x)+20;
 				int playerYLeft=Math.round(players[myID].y);
 				int playerYRight=Math.round(players[myID].y)+20;
-				if(players[myID].vy>0 && players[myID].y+20>groundLevel) {
+				if(players[myID].vy>=0 && players[myID].y+20>groundLevel) {
 					players[myID].y=groundLevel-20;
 					players[myID].vy=0;
 					players[myID].onGround=true;
@@ -284,9 +285,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				int newGroundLevel=Integer.MAX_VALUE;
 				for(Platform plat:platforms) {
 					if((plat.x<=playerXLeft && plat.x+plat.width>=playerXLeft) || (plat.x<=playerXRight && plat.x+plat.width>=playerXRight)) {
-						if(playerYRight<=plat.y) {
+						if(playerYRight<=plat.y+20) {
 							if(plat.y<newGroundLevel) {
-								newGroundLevel=plat.y;
+								newGroundLevel=Math.round(plat.y);
 							}
 						}
 					}
@@ -296,9 +297,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				newGroundLevel=-Integer.MAX_VALUE;
 				for(Platform plat:platforms) {
 					if((plat.x<playerXLeft && plat.x+plat.width>playerXLeft) || (plat.x<playerXRight && plat.x+plat.width>playerXRight)) {
-						if(playerYLeft>plat.y) {
+						if(playerYLeft>plat.y-10) {
 							if(plat.y>newGroundLevel) {
-								newGroundLevel=plat.y+plat.height;
+								newGroundLevel=Math.round(plat.y)+plat.height;
 							}
 						}
 					}
@@ -308,10 +309,10 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				//RIGHT COLLISION
 				newGroundLevel=Integer.MAX_VALUE;
 				for(Platform plat:platforms) {
-					if((plat.y<=playerYLeft && plat.y+plat.height>=playerYLeft) || (plat.y<=playerYRight && plat.y+plat.height>=playerYRight)) {
-						if(playerXRight<=plat.x) {
+					if((plat.y<playerYLeft && plat.y+plat.height>playerYLeft) || (plat.y<playerYRight && plat.y+plat.height>playerYRight)) {
+						if(playerXRight<=plat.x+10) {
 							if(plat.x<newGroundLevel) {
-								newGroundLevel=plat.x;
+								newGroundLevel=Math.round(plat.x);
 							}
 						}
 					}
@@ -322,9 +323,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				newGroundLevel=-Integer.MAX_VALUE;
 				for(Platform plat:platforms) {
 					if((plat.y<=playerYLeft && plat.y+plat.height>=playerYLeft) || (plat.y<=playerYRight && plat.y+plat.height>=playerYRight)) {
-						if(playerXLeft>=plat.x+plat.width) {
+						if(playerXLeft>=plat.x+plat.width-10) {
 							if(plat.x+plat.width>newGroundLevel) {
-								newGroundLevel=plat.x+plat.width;
+								newGroundLevel=Math.round(plat.x)+plat.width;
 							}
 						}
 					}

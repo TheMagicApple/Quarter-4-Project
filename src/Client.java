@@ -14,7 +14,7 @@ public class Client {
 		String host="10.210.113.163";
 		int port=9000;
 		try {
-			Socket server=new Socket(host,port);
+			Socket server=new Socket(host,port); 
 			write=new PrintWriter(server.getOutputStream(), true);
 			read = new BufferedReader(new InputStreamReader(server.getInputStream()));
 			Scanner s=new Scanner(System.in);
