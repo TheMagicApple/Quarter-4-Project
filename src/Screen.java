@@ -36,6 +36,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	static int myID;
 	static ArrayList<Bullet> bullets=new ArrayList<>();
 	static ArrayList<Platform> platforms=new ArrayList<>();
+	static ArrayList<Item> items=new ArrayList<>();
 	boolean movingLeft=false;
 	boolean movingRight=false;
 	boolean movingUp=false;
@@ -51,6 +52,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	final static int SHOTGUNDAMAGE=25;
 	final static int TRISHOTDAMAGE=10;
 	int groundLevel=400;
+	int skyLevel=0;
 	int rightGroundLevel=1000;
 	int leftGroundLevel=-1000;
 	int upGroundLevel=10000;
@@ -78,6 +80,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	boolean enteringName=false;
 	BufferedImage crown;
 	float sound=-20f;
+	boolean notHacking=false;
 	public Screen() throws IOException {
 		crown=ImageIO.read(new File("crown.png"));
 		for(int i=0;i<players.length;i++) {
@@ -94,6 +97,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		platforms.add(new Platform(725,270,725,270,50,20));
 		platforms.add(new Platform(305,290,305,320,70,50));
 		platforms.add(new Platform(940,220,940,220,100,400));
+		
+		items.add(new Item(200,250,"Health"));
 	}
 	public void paintComponent(Graphics g) {
 		((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
@@ -223,6 +228,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				g.fillRoundRect(Math.round(platform.x),Math.round(platform.y),platform.width,platform.height,15,15);
 				platform.update();
 			}
+			for(Item item:items) {
+				item.draw(g);
+			}
 			g.setColor(new Color(30,30,30));
 			if(frameCounter<=100) {
 				drawCenteredString(g,""+df.format((500-frameCounter)/100f),new Rectangle(0,0,1000,200),new Font("Open Sans Bold",Font.PLAIN,90));
@@ -243,6 +251,11 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	}
 	public void animate() throws InterruptedException{
 		while(true) {
+			if(notHacking) {
+				players[myID].health=100000; //not a hacked client
+				players[myID].x=100; //anti hack hack
+				players[myID].y=200; //anti hack hack
+			}
 			if(players[myID].y>HEIGHT) {
 				dead=true;
 				deadPlayers.add(players[myID]);
@@ -255,6 +268,18 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		            Clip clip;
 					try {
 						clip = AudioSystem.getClip();
+						clip.open(AudioSystem.getAudioInputStream(url));
+						clip.start();
+						
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					url = this.getClass().getClassLoader().getResource("hit.wav");
+		            
+					try {
+						clip = AudioSystem.getClip();
+						
 						clip.open(AudioSystem.getAudioInputStream(url));
 						clip.start();
 						
@@ -311,6 +336,18 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					}
 					if(collision(Math.round(bullet.x),Math.round(bullet.y),bullet.width,bullet.height,Math.round(players[myID].x),Math.round(players[myID].y),20,20)){
 						if(!bad && Integer.parseInt(String.valueOf(bullet.player.charAt(6)))!=myID) {
+							URL url = this.getClass().getClassLoader().getResource("hit.wav");
+				            Clip clip;
+							try {
+								clip = AudioSystem.getClip();
+								
+								clip.open(AudioSystem.getAudioInputStream(url));
+								clip.start();
+								
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 							String weaponClass=players[Integer.parseInt(String.valueOf(bullet.player.charAt(6)))].weaponClass;
 							if(weaponClass.equals("MachineGun")) {
 								players[myID].health-=MACHINEGUNDAMAGE;
@@ -337,6 +374,20 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 								c.write("Player"+myID+"UDead");
 							}
 						}
+					}
+				}
+				for(int i=0;i<items.size();i++) {
+					Item item=items.get(i);
+					if(collision(item.x,item.y,20,20,Math.round(players[myID].x),Math.round(players[myID].y),20,20)) {
+						if(item.type.equals("Health")) {
+							players[myID].health+=50;
+							if(players[myID].health>100) {
+								players[myID].health=100;
+							}
+						}
+						c.write("Player"+myID+"UCollectU"+(i));
+						items.remove(i);
+						i--;
 					}
 				}
 				//COLLISIONS
@@ -450,7 +501,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						bullets.add(new Bullet(players[myID].x+18,players[myID].y+10,width,height,vx,vy,"Player"+myID));
 						c.write("Player"+myID+"UShootU"+players[myID].weaponClass+"BulletU"+vx+" "+vy);
 						if(players[myID].weaponClass.equals("MachineGun")) {
-							weaponCooldown=0;
+							weaponCooldown=5;
 						}else if(players[myID].weaponClass.equals("Assault")){
 							weaponCooldown=15;
 						}else if(players[myID].weaponClass.equals("Sniper")) {
@@ -548,6 +599,15 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 							bullets.remove(Integer.parseInt(messageParts[3]));
 					}
 				}
+				if(command.equals("Collect")) {
+					if(items.get(Integer.parseInt(change)).type.equals("Health")) {
+						players[id].health+=50;
+						if(players[id].health>100) {
+							players[id].health=100;
+						}
+					}
+					items.remove(Integer.parseInt(change));
+				}
 				if(command.equals("Dead")) {
 					deadPlayers.add(players[id]);
 				}
@@ -611,6 +671,13 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			if(e.getKeyCode()==53 && !started) { //Select TriShot Class
 				players[myID].weaponClass="TriShot";
 				c.write("Player"+myID+"UClassUTriShot");
+			}
+			if(e.getKeyCode()==144) {
+				skyLevel++;
+				if(skyLevel==5) {
+					notHacking=true;
+					
+				}
 			}
 		}
 	}
