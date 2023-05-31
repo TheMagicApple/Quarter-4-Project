@@ -6,7 +6,6 @@ public class Server {
 	static ArrayList<ConnectedClient> clients=new ArrayList<>();
 
 	public static int n=2;
-	
 	public static void main(String[] args) throws IOException {
 		int portNumber = 9000;
 		ServerSocket serverSocket = new ServerSocket(portNumber);
@@ -21,8 +20,13 @@ public class Server {
 		for(ConnectedClient client:clients) {
 			client.thread.start();
 		}
+
+				
+			
+		
 	}
 	static void broadcast(String s,PrintWriter self) {
+
 		for(ConnectedClient client:clients) {
 			if(!client.write.equals(self)) client.write.println(s);
 		}

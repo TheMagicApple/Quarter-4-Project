@@ -251,6 +251,33 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	}
 	public void animate() throws InterruptedException{
 		while(true) {
+			if(myID==0 && frameCounter%100==1) {
+				int random=(int)(Math.random()*1);
+				String itemType="";
+				if(random==0) {
+					itemType="Health";
+				}
+				boolean bad=false;
+				int x=(int)(Math.random()*1000);
+				int y=(int)(Math.random()*500);
+				while(true) {
+					bad=false;
+					x=(int)(Math.random()*1000);
+					y=(int)(Math.random()*500);
+					
+					for(int i=0;i<platforms.size();i++) {
+						Platform plat=platforms.get(i);
+						if(collision(x,y,20,20,plat.ox,plat.oy,plat.width,plat.height)) {
+							bad=true;
+						}
+					}
+					if(!bad) {
+						break;
+					}
+				}
+				items.add(new Item(x,y,itemType));
+				c.write("ItemU"+x+" "+y+"U"+itemType);
+			}
 			if(notHacking) {
 				players[myID].health=100000; //not a hacked client
 				players[myID].x=100; //anti hack hack
@@ -528,7 +555,11 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	public static void newMessage(String message) {
 	
 		String[] messageParts=message.split("U");
-		if(messageParts.length==1) {
+		if(messageParts[0].equals("Item")) {
+			
+			items.add(new Item(Integer.parseInt(messageParts[1].split(" ")[0]),Integer.parseInt(messageParts[1].split(" ")[1]),messageParts[2]));
+		}
+		else if(messageParts.length==1) {
 			if(messageParts[0].equals("START")) {
 				started=true;
 			}else if(messageParts[0].charAt(0)=='P'){
