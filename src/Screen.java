@@ -81,6 +81,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	BufferedImage crown;
 	float sound=-20f;
 	boolean notHacking=false;
+	boolean firstJump=false;
+	boolean secondJump=false;
 	public Screen() throws IOException {
 		crown=ImageIO.read(new File("crown.png"));
 		for(int i=0;i<players.length;i++) {
@@ -426,6 +428,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					players[myID].y=groundLevel-20;
 					players[myID].vy=0;
 					players[myID].onGround=true;
+					firstJump=false;
+					secondJump=false;
 				}
 				if(players[myID].y+20<groundLevel) {
 					players[myID].onGround=false;
@@ -675,10 +679,17 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			if(e.getKeyCode()==68) {
 				movingRight=true;
 			}
+			if(e.getKeyCode()==87 && secondJump==false && (firstJump==true || players[myID].onGround==false)) {
+				players[myID].vy=-6;
+				players[myID].onGround=false;
+				secondJump=true;
+			}
 			if(e.getKeyCode()==87 && players[myID].onGround) {
 				players[myID].vy=-6;
 				players[myID].onGround=false;
+				firstJump=true;
 			}
+			
 			/*if(e.getKeyCode()==10) { //Press Enter to Automatically Fill Name as PlayerN
 				players[myID].name="Player"+myID;
 				c.write("Player"+myID+"UNameU"+players[myID].name);
@@ -753,6 +764,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				started=true;
 				if(players[myID].name.equals("")) {
 					players[myID].name="Player"+myID;
+					c.write("Player"+myID+"UNameU"+players[myID].name);
 				}
 			} 
 			
