@@ -28,7 +28,7 @@ public class Player {
 
 	public float weaponRotation=0;
 	
-	public String weaponClass="";
+	public String weaponClass="MachineGun";
 	
 	public Player() {
 		

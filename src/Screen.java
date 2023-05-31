@@ -14,14 +14,23 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JPanel;
 import java.awt.font.TextAttribute;
+import java.awt.image.BufferedImage;
 public class Screen extends JPanel implements KeyListener,MouseListener,MouseMotionListener{
 	static Player[] players=new Player[Server.n];
 	static int myID;
@@ -33,7 +42,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	boolean movingDown=false;
 	boolean shooting=false;
 	Client c=new Client();
-	final static int FPS=100;
+	final static int FPS=60;
 	final static int WIDTH=1000;
 	final static int HEIGHT=500;
 	final static int MACHINEGUNDAMAGE=4;
@@ -60,13 +69,17 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	float deltay=0;
 	int bulletCounter=0;
 	int frameCounter=0;
+	boolean restartHover=false;
 	boolean readyHover=false;
 	boolean read_e=false;
 	static DecimalFormat df=	new DecimalFormat("0.00");
 	static String winner="";
 	String myName="";
 	boolean enteringName=false;
+	BufferedImage crown;
+	float sound=-20f;
 	public Screen() throws IOException {
+		crown=ImageIO.read(new File("crown.png"));
 		for(int i=0;i<players.length;i++) {
 			players[i]=new Player();
 			players[i].x=100+200*i;
@@ -107,22 +120,81 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			if(read_e)  g.setColor(new Color(57, 191, 86));
 			else if(readyHover) g.setColor(new Color(47, 110, 212));
 			else g.setColor(new Color(52, 122, 235));
-			g.fillRoundRect(400,300,200,70,10,10);
+			g.fillRoundRect(400,280,200,70,10,10);
 			g.setColor(Color.white);
-			drawCenteredString(g,"Ready", new Rectangle(400,300,200,70),new Font("Open Sans Bold",Font.PLAIN,45));
+			drawCenteredString(g,"Ready", new Rectangle(400,280,200,70),new Font("Open Sans Bold",Font.PLAIN,45));
 			g.setColor(Color.black);
-			drawCenteredString(g,ready+"/"+Server.n, new Rectangle(400,390,200,10),new Font("Open Sans Bold",Font.PLAIN,30));
+			drawCenteredString(g,ready+"/"+Server.n, new Rectangle(400,370,200,10),new Font("Open Sans Bold",Font.PLAIN,30));
 			if(enteringName) g.setColor(new Color(52, 122, 235));
 			else g.setColor(new Color(0,0,0,50));
 			((Graphics2D)g).setStroke(new BasicStroke(3));
-			g.drawRoundRect(700,310,200,50,10,10);
+			g.drawRoundRect(700,290,200,50,10,10);
 			g.setColor(new Color(30,30,30));
-			drawCenteredString(g,"Username", new Rectangle(650,280,200,30),new Font("Open Sans",Font.PLAIN,20));
-			drawCenteredString(g,players[myID].name, new Rectangle(700,310,200,50),new Font("Open Sans",Font.PLAIN,30));
-			//drawCenteredString(g,"(Enter to Submit)", new Rectangle(700,360,200,30),new Font("Open Sans",Font.PLAIN,12));
+			drawCenteredString(g,"Username", new Rectangle(650,260,200,30),new Font("Open Sans",Font.PLAIN,20));
+			drawCenteredString(g,players[myID].name, new Rectangle(700,290,200,50),new Font("Open Sans",Font.PLAIN,30));
+			drawCenteredString(g,"Select Class (keys 1-5)", new Rectangle(30,370,180,30),new Font("Open Sans",Font.PLAIN,20));
+			if(players[myID].weaponClass.equals("MachineGun")) {
+				g.setColor(new Color(57, 191, 86));
+				g.fillRoundRect(20,410,70,70,10,10);
+				g.setColor(Color.white);
+				drawCenteredString(g,"MG",new Rectangle(20,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
+			}else {
+				g.setColor(new Color(30,30,30));
+				g.drawRoundRect(20,410,70,70,10,10);
+				drawCenteredString(g,"MG",new Rectangle(20,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
+			}
+			if(players[myID].weaponClass.equals("Assault")) {
+				g.setColor(new Color(57, 191, 86));
+				g.fillRoundRect(110,410,70,70,10,10);
+				g.setColor(Color.white);
+				drawCenteredString(g,"AR",new Rectangle(110,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
+			}else {
+				g.setColor(new Color(30,30,30));
+				g.drawRoundRect(110,410,70,70,10,10);
+				drawCenteredString(g,"AR",new Rectangle(110,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
+			}
+			if(players[myID].weaponClass.equals("Sniper")) {
+				g.setColor(new Color(57, 191, 86));
+				g.fillRoundRect(200,410,70,70,10,10);
+				g.setColor(Color.white);
+				drawCenteredString(g,"SP",new Rectangle(200,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
+			}else {
+				g.setColor(new Color(30,30,30));
+				g.drawRoundRect(200,410,70,70,10,10);
+				drawCenteredString(g,"SP",new Rectangle(200,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
+			}
+			if(players[myID].weaponClass.equals("Shotgun")) {
+				g.setColor(new Color(57, 191, 86));
+				g.fillRoundRect(290,410,70,70,10,10);
+				g.setColor(Color.white);
+				drawCenteredString(g,"SG",new Rectangle(290,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
+			}else {
+				g.setColor(new Color(30,30,30));
+				g.drawRoundRect(290,410,70,70,10,10);
+				drawCenteredString(g,"SG",new Rectangle(290,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
+			}
+			if(players[myID].weaponClass.equals("TriShot")) {
+				g.setColor(new Color(57, 191, 86));
+				g.fillRoundRect(380,410,70,70,10,10);
+				g.setColor(Color.white);
+				drawCenteredString(g,"TR",new Rectangle(380,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
+			}else {
+				g.setColor(new Color(30,30,30));
+				g.drawRoundRect(380,410,70,70,10,10);
+				drawCenteredString(g,"TR",new Rectangle(380,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
+			}
+			
+			
+			
 		}else if(ended) {
 			g.setColor(new Color(30,30,30));
-			g.drawString(winner, 200,200);
+			drawCenteredString(g,winner, new Rectangle(400,70,200,100),new Font("Open Sans Bold",Font.PLAIN,40));
+			g.drawImage(crown,430,150,null);
+			if(restartHover) g.setColor(new Color(47, 110, 212));
+			else g.setColor(new Color(52, 122, 235));
+			g.fillRoundRect(400,300,200,70,10,10);
+			g.setColor(Color.white);
+			drawCenteredString(g,"Restart", new Rectangle(400,300,200,70),new Font("Open Sans Bold",Font.PLAIN,45));
 		}
 		else{
 			
@@ -152,7 +224,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				platform.update();
 			}
 			g.setColor(new Color(30,30,30));
-			if(frameCounter<=500) {
+			if(frameCounter<=100) {
 				drawCenteredString(g,""+df.format((500-frameCounter)/100f),new Rectangle(0,0,1000,200),new Font("Open Sans Bold",Font.PLAIN,90));
 			}else if(frameCounter<=550) {
 				g.setColor(new Color(57, 191, 86));
@@ -178,7 +250,19 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			}
 			if(started) {
 				frameCounter++;
-			
+				if(frameCounter==1) {
+					URL url = this.getClass().getClassLoader().getResource("shoot.wav");
+		            Clip clip;
+					try {
+						clip = AudioSystem.getClip();
+						clip.open(AudioSystem.getAudioInputStream(url));
+						clip.start();
+						
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
 			if(deadPlayers.size()==Server.n-1 && !ended) {
 				if(!dead) {
@@ -332,7 +416,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				}
 				leftGroundLevel=newGroundLevel;
 				//frame counter: grace period for 500/100=5 seconds
-				if(shooting && !dead && frameCounter>=500) {
+				if(shooting && !dead && frameCounter>=100) {
 					if(weaponCooldown==0) {
 						bulletCounter++;
 						//System.out.println(px+" "+py+" "+mx+" "+my+" "+deltax+" "+deltay);
@@ -346,10 +430,27 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 							width=15;
 							height=15;
 						}
+						URL url = this.getClass().getClassLoader().getResource("shoot.wav");
+			            Clip clip;
+						try {
+							clip = AudioSystem.getClip();
+							
+							clip.open(AudioSystem.getAudioInputStream(url));
+							FloatControl gainControl = 
+								    (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+								gainControl.setValue(sound); // Change volume by [sound] decibels
+							clip.start();
+							
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+			            
+			            
 						bullets.add(new Bullet(players[myID].x+18,players[myID].y+10,width,height,vx,vy,"Player"+myID));
 						c.write("Player"+myID+"UShootU"+players[myID].weaponClass+"BulletU"+vx+" "+vy);
 						if(players[myID].weaponClass.equals("MachineGun")) {
-							weaponCooldown=5;
+							weaponCooldown=0;
 						}else if(players[myID].weaponClass.equals("Assault")){
 							weaponCooldown=15;
 						}else if(players[myID].weaponClass.equals("Sniper")) {
@@ -385,6 +486,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					ready++;
 					if(ready==Server.n) {
 						started=true;
+						if(players[myID].name.equals("")) {
+							players[myID].name="Player"+myID;
+						}
 						
 					}
 			}
@@ -412,6 +516,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					players[id].name=change;
 				}
 				if(command.equals("Shoot")) {
+					
 					float vx=Float.parseFloat(messageParts[3].split(" ")[0]);
 					float vy=Float.parseFloat(messageParts[3].split(" ")[1]);
 					int width=5;
@@ -487,23 +592,23 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				players[myID].name="Player"+myID;
 				c.write("Player"+myID+"UNameU"+players[myID].name);
 			}*/
-			if(e.getKeyCode()==49) { //Select MachineGun Class
+			if(e.getKeyCode()==49 && !started) { //Select MachineGun Class
 				players[myID].weaponClass="MachineGun";
 				c.write("Player"+myID+"UClassUMachineGun");
 			}
-			if(e.getKeyCode()==50) { //Select Assault Class
+			if(e.getKeyCode()==50 && !started) { //Select Assault Class
 				players[myID].weaponClass="Assault";
 				c.write("Player"+myID+"UClassUAssault");
 			}
-			if(e.getKeyCode()==51) { //Select Sniper Class
+			if(e.getKeyCode()==51 && !started) { //Select Sniper Class
 				players[myID].weaponClass="Sniper";
 				c.write("Player"+myID+"UClassUSniper");
 			}
-			if(e.getKeyCode()==52) { //Select Shotgun Class
+			if(e.getKeyCode()==52 && !started) { //Select Shotgun Class
 				players[myID].weaponClass="Shotgun";
 				c.write("Player"+myID+"UClassUShotgun");
 			}
-			if(e.getKeyCode()==53) { //Select TriShot Class
+			if(e.getKeyCode()==53 && !started) { //Select TriShot Class
 				players[myID].weaponClass="TriShot";
 				c.write("Player"+myID+"UClassUTriShot");
 			}
@@ -525,18 +630,36 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	}
 	@Override
 	public void mousePressed(MouseEvent e) {
-		shooting=true;
-		if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=370 && !read_e) {
+		if(started && !ended) shooting=true;
+		if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=370 && ended) {
+			enteringName=false;
+			ready-=Server.n;
+			ended=false;
+			started=false;
+			read_e=false;
+			deadPlayers.clear();
+			frameCounter=0;
+			for(int i=0;i<players.length;i++) {
+				players[i].x=100+200*i;
+				players[i].y=200;
+				players[i].health=100;
+				dead=false;
+			}
+		}else
+		if(e.getX()>=400 && e.getX()<=600 && e.getY()>=280 && e.getY()<=350 && !read_e) {
 			c.write("Ready");
 			enteringName=false;
 			ready++;
 			read_e=true;
 			if(ready==Server.n) {
 				started=true;
+				if(players[myID].name.equals("")) {
+					players[myID].name="Player"+myID;
+				}
 			} 
 			
 		}
-		if(e.getX()>=700 && e.getX()<=900 && e.getY()>=340 && e.getY()<=390 && !started) {
+		if(e.getX()>=700 && e.getX()<=900 && e.getY()>=320 && e.getY()<=370 && !started) {
 			enteringName=true;
 		}else {
 			enteringName=false;
@@ -591,7 +714,14 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	}
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		if(started) {
+		if(ended) {
+			if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=400) {
+				restartHover=true;
+			}else {
+				restartHover=false;
+			}
+		}
+		else if(started) {
 			mx=e.getX()-7;
 			my=e.getY()-30;
 			int x=e.getX()-7;
@@ -607,7 +737,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				players[myID].weaponRotation=(float) Math.atan(deltay/deltax);
 				c.write("Player"+myID+"UAimU"+(float) ((float) Math.atan(deltay/deltax)));
 			}
-		}else {
+		}else if(!started){
 			if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=400) {
 				readyHover=true;
 			}else {

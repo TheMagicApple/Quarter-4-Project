@@ -5,7 +5,7 @@ import java.io.*;
 public class Server {
 	static ArrayList<ConnectedClient> clients=new ArrayList<>();
 
-	public static int n=3;
+	public static int n=2;
 	
 	public static void main(String[] args) throws IOException {
 		int portNumber = 9000;
