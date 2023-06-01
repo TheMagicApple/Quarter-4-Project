@@ -27,4 +27,6 @@ public class Bullet {
 		g.setColor(new Color(40,40,40));
 		g.fillOval(Math.round(x), Math.round(y), width, height);
 	}
+
 }
+

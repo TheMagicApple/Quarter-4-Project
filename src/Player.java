@@ -1,8 +1,10 @@
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -77,7 +79,8 @@ public class Player {
 		g.fillOval(Math.round(x)+3, Math.round(y)+3, 6,6);
 		g.fillOval(Math.round(x)+11, Math.round(y)+3, 6,6);
 		//g.drawImage(image, Math.round(x),Math.round(y)-20,null);
-		g.drawString(name,Math.round(x),Math.round(y)-20);
+		Screen.drawCenteredString(g,name,new Rectangle(Math.round(x),Math.round(y)-30,20,10),new Font("Open Sans Bold",Font.PLAIN,12));
+		//g.drawString(name,Math.round(x),Math.round(y)-20);
 		if(health>50) g.setColor(new Color(0,255,0));
 		else g.setColor(new Color(255,0,0));
 		
@@ -95,5 +98,15 @@ public class Player {
 		gg.fillRoundRect(Math.round(x)+18,Math.round(y)+10,8,3,3,4);
 		gg.rotate(-weaponRotation,Math.round(x)+18,Math.round(y)+10);
 		
-	}	
+	}
+	public int hashCode() {
+		int sum=0;
+		for(int i=0;i<name.length();i++) {
+			sum+=(i*3)*name.charAt(i);
+		}
+		return sum;
+	}
+	public boolean equals(Object o) {
+		return o.hashCode()==hashCode();
+	}
 }

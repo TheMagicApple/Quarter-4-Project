@@ -18,9 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioSystem;
@@ -34,9 +32,9 @@ import java.awt.image.BufferedImage;
 public class Screen extends JPanel implements KeyListener,MouseListener,MouseMotionListener{
 	static Player[] players=new Player[Server.n];
 	static int myID;
-	static ArrayList<Bullet> bullets=new ArrayList<>();
-	static ArrayList<Platform> platforms=new ArrayList<>();
-	static ArrayList<Item> items=new ArrayList<>();
+	static MyArrayList<Bullet> bullets=new MyArrayList<>();
+	static MyArrayList<Platform> platforms=new MyArrayList<>();
+	static MyArrayList<Item> items=new MyArrayList<>();
 	boolean movingLeft=false;
 	boolean movingRight=false;
 	boolean movingUp=false;
@@ -70,7 +68,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	static int clients=0;
 	static int ready=0;
 	boolean dead=false;
-	static ArrayList<Player> deadPlayers=new ArrayList<>();
+	static MyArrayList<Player> deadPlayers=new MyArrayList<>();
 	int weaponCooldown=0;
 	int mx=0;
 	int my=0;
@@ -95,6 +93,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	boolean collectedSpeed=false;
 	boolean collectedJump=false;
 	boolean collectedGravity=false;
+	
+	int map=1;
+	boolean viewingHelp=false;
 	public Screen() throws IOException {
 		crown=ImageIO.read(new File("crown.png"));
 		for(int i=0;i<players.length;i++) {
@@ -103,14 +104,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		}
 		c.go();
 		
-		platforms.add(new Platform(0,400,0,400,700,100));
-		platforms.add(new Platform(800,400,800,400,200,100));
-		platforms.add(new Platform(200,320,200,320,400,100));
-		platforms.add(new Platform(10,360,10,360,50,50));
-		platforms.add(new Platform(825,330,825,330,50,20));
-		platforms.add(new Platform(725,270,725,270,50,20));
-		platforms.add(new Platform(305,290,305,320,70,50));
-		platforms.add(new Platform(940,220,940,220,100,400));
+		
 		
 		items.add(new Item(200,250,"Health"));
 	}
@@ -118,19 +112,17 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 		super.paintComponent(g);
 		if(!started) {
-			Map<TextAttribute, Object> attributes = new HashMap<TextAttribute, Object>();
-			attributes.put(TextAttribute.TRACKING, -0.02);
-			g.setFont(new Font("Open Sans Bold",Font.PLAIN,100).deriveFont(attributes));
+			
+			g.setFont(new Font("Open Sans Bold",Font.PLAIN,100));
 			
 			g.drawString("P   LY", 170,150);
-			Map<TextAttribute, Object> attributes2 = new HashMap<TextAttribute, Object>();
-			attributes2.put(TextAttribute.TRACKING, 0.04);
-			g.setFont(new Font("Open Sans Bold",Font.PLAIN,100).deriveFont(attributes2));
+			
+			g.setFont(new Font("Open Sans Bold",Font.PLAIN,100));
 			g.drawString("P  RTY!", 470,150);
 			g.setColor(new Color(255,0,0));
 			g.fillOval(235,80,70,70);
 			g.setColor(new Color(52, 122, 235));
-			g.fillPolygon(new int[] {525,560,595},new int[] {150,80,150},3);
+			g.fillPolygon(new int[] {520,555,590},new int[] {150,80,150},3);
 			g.setFont(new Font("Open Sans",Font.PLAIN,30));
 			g.setColor(new Color(255,0,0));
 			g.fillRoundRect(300,200,400,50,10,10);
@@ -195,16 +187,28 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			if(players[myID].weaponClass.equals("TriShot")) {
 				g.setColor(new Color(57, 191, 86));
 				g.fillRoundRect(380,410,70,70,10,10);
-				g.setColor(Color.white);
+				g.setColor(Color.white); 
 				drawCenteredString(g,"TR",new Rectangle(380,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
 			}else {
 				g.setColor(new Color(30,30,30));
 				g.drawRoundRect(380,410,70,70,10,10);
 				drawCenteredString(g,"TR",new Rectangle(380,410,70,70),new Font("Open Sans Bold",Font.PLAIN,30));
 			}
-			
-			
-			
+			if(myID==0) {
+				g.drawRoundRect(725,400,150,50,10,10);
+				drawCenteredString(g,"Map "+map,new Rectangle(725,400,150,50),new Font("Open Sans Bold",Font.PLAIN,30));
+			}
+			g.setColor(new Color(30,30,30));
+			g.drawRoundRect(20,20,50,50,10,10);
+			drawCenteredString(g,"?",new Rectangle(20,20,50,50),new Font("Open Sans Bold",Font.PLAIN,40));
+			if(viewingHelp) {
+				
+				drawCenteredString(g,"A and D to Move",new Rectangle(20,80,90,10),new Font("Open Sans",Font.PLAIN,10));
+				drawCenteredString(g,"W to Jump",new Rectangle(20,90,90,10),new Font("Open Sans",Font.PLAIN,10));
+				drawCenteredString(g,"Mouse to Aim and Shoot",new Rectangle(20,100,90,10),new Font("Open Sans",Font.PLAIN,10));
+				drawCenteredString(g,"Collect Power-Ups",new Rectangle(20,110,90,10),new Font("Open Sans",Font.PLAIN,10));
+				drawCenteredString(g,"Last Player Left Wins",new Rectangle(20,120,90,10),new Font("Open Sans",Font.PLAIN,10));
+			}
 		}else if(ended) {
 			g.setColor(new Color(30,30,30));
 			drawCenteredString(g,winner, new Rectangle(400,70,200,100),new Font("Open Sans Bold",Font.PLAIN,40));
@@ -224,7 +228,16 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			for(int i=25;i<500;i+=50) {
 				g.fillRect(0, i, 1000, 2);
 			}
-			
+			g.setColor(new Color(30,30,30));
+			g.fillRoundRect(10,10,100,150,10,10);
+			g.setColor(Color.white);
+			int y=20;
+			for(Player player:players) {
+				if(!deadPlayers.contains(player)) {
+					drawCenteredString(g,player.name,new Rectangle(10,y,100,10),new Font("Open Sans Bold",Font.PLAIN,15));
+					y+=25;
+				}
+			}
 			g.setColor(new Color(255,0,0,120));
 			g.drawLine(px+8, py, px+8+Math.round(deltax)*10, py+Math.round(deltay)*10);
 			for(Player player:players) {
@@ -233,11 +246,15 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			players[myID].update();
 			c.write("Player"+myID+"UMoveU"+players[myID].x+" "+players[myID].y);
 			for(int i=0;i<bullets.size();i++) {
-				Bullet bullet=bullets.get(i);
-				bullet.update();
-				bullet.draw(g);
+				
+					Bullet bullet=bullets.get(i);
+					bullet.update();
+					bullet.draw(g);
+				
+				
 			}
-			for(Platform platform:platforms) {
+			for(int i=0;i<platforms.size();i++) {
+				Platform platform=platforms.get(i);
 				g.setColor(new Color(94, 201, 255));
 				g.fillRoundRect(Math.round(platform.x),Math.round(platform.y),platform.width,platform.height,15,15);
 				platform.update();
@@ -246,9 +263,9 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				items.get(i).draw(g);
 			}
 			g.setColor(new Color(30,30,30));
-			if(frameCounter<=100) {
-				drawCenteredString(g,""+df.format((500-frameCounter)/100f),new Rectangle(0,0,1000,200),new Font("Open Sans Bold",Font.PLAIN,90));
-			}else if(frameCounter<=550) {
+			if(frameCounter<=300) {
+				drawCenteredString(g,""+df.format((300-frameCounter)/100f),new Rectangle(0,0,1000,200),new Font("Open Sans Bold",Font.PLAIN,90));
+			}else if(frameCounter<=350) {
 				g.setColor(new Color(57, 191, 86));
 				drawCenteredString(g,"GO!",new Rectangle(0,0,1000,200),new Font("Open Sans Bold",Font.PLAIN,90));
 			}
@@ -279,7 +296,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 		}
 	
 	}
-	public void drawCenteredString(Graphics g, String text, Rectangle rect, Font font) {
+	public static void drawCenteredString(Graphics g, String text, Rectangle rect, Font font) {
 	    FontMetrics metrics = g.getFontMetrics(font);
 	    int x = rect.x + (rect.width - metrics.stringWidth(text)) / 2;
 	    int y = rect.y + ((rect.height - metrics.getHeight()) / 2) + metrics.getAscent();
@@ -326,7 +343,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				c.write("ItemU"+x+" "+y+"U"+itemType);
 			}
 
-			if(players[myID].y>HEIGHT) {
+			if(players[myID].y>HEIGHT+100) {
 				dead=true;
 				deadPlayers.add(players[myID]);
 				c.write("Player"+myID+"UDead");
@@ -334,6 +351,37 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			if(started) {
 				frameCounter++;
 				if(frameCounter==1) {
+					if(myID==0) {
+						c.write("Map"+map);
+						if(map==1) {
+							platforms.add(new Platform(0,400,0,400,700,100));
+							platforms.add(new Platform(800,400,800,400,200,100));
+							platforms.add(new Platform(200,320,200,320,400,100));
+							platforms.add(new Platform(10,360,10,360,50,50));
+							platforms.add(new Platform(825,330,825,330,50,20));
+							platforms.add(new Platform(725,270,725,270,50,20));
+							platforms.add(new Platform(260,290,440,290,70,50));
+							platforms.add(new Platform(940,220,940,220,100,400));
+						}else if(map==2) {
+							platforms.add(new Platform(0,400,0,400,1000,100));
+							platforms.add(new Platform(100,350,100,350,800,100));
+							platforms.add(new Platform(200,300,200,300,600,100));
+							platforms.add(new Platform(300,250,300,250,400,100));
+							platforms.add(new Platform(400,200,400,200,200,100));
+							platforms.add(new Platform(450,150,450,150,100,100));
+						}else if(map==3) {
+							platforms.add(new Platform(600,100,600,100,400,400));
+							platforms.add(new Platform(300,400,300,400,100,100));
+							platforms.add(new Platform(200,350,200,350,50,150));
+							platforms.add(new Platform(90,300,90,300,60,200));
+							platforms.add(new Platform(0,250,0,250,100,350));
+							platforms.add(new Platform(550,450,550,150,60,350));
+						}
+					}
+					if(players[myID].name.equals("")) {
+						players[myID].name="Player"+myID;
+						c.write("Player"+myID+"UNameU"+players[myID].name);
+					}
 					URL url = this.getClass().getClassLoader().getResource("shoot.wav");
 		            Clip clip;
 					try {
@@ -357,6 +405,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+					
 				}
 			}
 			if(deadPlayers.size()==Server.n-1 && !ended) {
@@ -393,61 +442,66 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				
 				for(int i=0;i<bullets.size();i++) {
 					boolean bad=false;
-					Bullet bullet=bullets.get(i);
-					if(bullet.x>1000f || bullet.x<0f) {
-						bullets.remove(i);
-						i--;
+					
+							
 						
-						bad=true;
-					}
-					for(Platform plat:platforms) {
-						if(!bad && collision(Math.round(bullet.x),Math.round(bullet.y),5,5,Math.round(plat.x),Math.round(plat.y),plat.width,plat.height)){
+						Bullet bullet=bullets.get(i);
+						if(bullet!=null && (bullet.x>1000f || bullet.x<0f)) {
 							bullets.remove(i);
 							i--;
+							
 							bad=true;
 						}
-					}
-					if(collision(Math.round(bullet.x),Math.round(bullet.y),bullet.width+5,bullet.height+5,Math.round(players[myID].x),Math.round(players[myID].y),20,20)){
-						if(!bad && Integer.parseInt(String.valueOf(bullet.player.charAt(6)))!=myID) {
-							URL url = this.getClass().getClassLoader().getResource("hit.wav");
-				            Clip clip;
-							try {
-								clip = AudioSystem.getClip();
-								
-								clip.open(AudioSystem.getAudioInputStream(url));
-								clip.start();
-								
-							} catch (Exception e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							String weaponClass=players[Integer.parseInt(String.valueOf(bullet.player.charAt(6)))].weaponClass;
-							if(weaponClass.equals("MachineGun")) {
-								players[myID].health-=MACHINEGUNDAMAGE;
-								c.write("Player"+myID+"UDamageU"+MACHINEGUNDAMAGE+"U"+(i));
-							}else if(weaponClass.equals("Assault")) {
-								players[myID].health-=ASSAULTDAMAGE;
-								c.write("Player"+myID+"UDamageU"+ASSAULTDAMAGE+"U"+(i));
-							}else if(weaponClass.equals("Sniper")) {
-								players[myID].health-=SNIPERDAMAGE;
-								c.write("Player"+myID+"UDamageU"+SNIPERDAMAGE+"U"+(i));
-							}else if(weaponClass.equals("Shotgun")) {
-								players[myID].health-=SHOTGUNDAMAGE;
-								c.write("Player"+myID+"UDamageU"+SHOTGUNDAMAGE+"U"+(i));
-							}else if(weaponClass.equals("TriShot")) {
-								players[myID].health-=TRISHOTDAMAGE;
-								c.write("Player"+myID+"UDamageU"+TRISHOTDAMAGE+"U"+(i));
-							}
-							players[myID].animationStage=0;
-							bullets.remove(i);
-							i--;
-							if(players[myID].health<=0) {
-								dead=true;
-								deadPlayers.add(players[myID]);
-								c.write("Player"+myID+"UDead");
+						for(int k=0;k<platforms.size();k++) {
+							Platform plat=platforms.get(k);
+							if(!bad && collision(Math.round(bullet.x),Math.round(bullet.y),5,5,Math.round(plat.x),Math.round(plat.y),plat.width,plat.height)){
+								bullets.remove(i);
+								i--;
+								bad=true;
 							}
 						}
-					}
+						if(collision(Math.round(bullet.x),Math.round(bullet.y),bullet.width+5,bullet.height+5,Math.round(players[myID].x),Math.round(players[myID].y),20,20)){
+							if(!bad && Integer.parseInt(String.valueOf(bullet.player.charAt(6)))!=myID) {
+								URL url = this.getClass().getClassLoader().getResource("hit.wav");
+					            Clip clip;
+								try {
+									clip = AudioSystem.getClip();
+									
+									clip.open(AudioSystem.getAudioInputStream(url));
+									clip.start();
+									
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								String weaponClass=players[Integer.parseInt(String.valueOf(bullet.player.charAt(6)))].weaponClass;
+								if(weaponClass.equals("MachineGun")) {
+									players[myID].health-=MACHINEGUNDAMAGE;
+									c.write("Player"+myID+"UDamageU"+MACHINEGUNDAMAGE+"U"+(i));
+								}else if(weaponClass.equals("Assault")) {
+									players[myID].health-=ASSAULTDAMAGE;
+									c.write("Player"+myID+"UDamageU"+ASSAULTDAMAGE+"U"+(i));
+								}else if(weaponClass.equals("Sniper")) {
+									players[myID].health-=SNIPERDAMAGE;
+									c.write("Player"+myID+"UDamageU"+SNIPERDAMAGE+"U"+(i));
+								}else if(weaponClass.equals("Shotgun")) {
+									players[myID].health-=SHOTGUNDAMAGE;
+									c.write("Player"+myID+"UDamageU"+SHOTGUNDAMAGE+"U"+(i));
+								}else if(weaponClass.equals("TriShot")) {
+									players[myID].health-=TRISHOTDAMAGE;
+									c.write("Player"+myID+"UDamageU"+TRISHOTDAMAGE+"U"+(i));
+								}
+								players[myID].animationStage=0;
+								bullets.remove(i);
+								i--;
+								if(players[myID].health<=0) {
+									dead=true;
+									deadPlayers.add(players[myID]);
+									c.write("Player"+myID+"UDead");
+								}
+							}
+						}
+					
 				}
 				for(int i=0;i<items.size();i++) {
 					Item item=items.get(i);
@@ -515,7 +569,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				
 				//VERTICAL COLLISION
 				int newGroundLevel=Integer.MAX_VALUE;
-				for(Platform plat:platforms) {
+				for(int i=0;i<platforms.size();i++) {
+					Platform plat=platforms.get(i);
 					if((plat.x<=playerXLeft && plat.x+plat.width>=playerXLeft) || (plat.x<=playerXRight && plat.x+plat.width>=playerXRight)) {
 						if(playerYRight<=plat.y+20) {
 							if(plat.y<newGroundLevel) {
@@ -527,7 +582,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				groundLevel=newGroundLevel;
 				
 				newGroundLevel=-Integer.MAX_VALUE;
-				for(Platform plat:platforms) {
+				for(int i=0;i<platforms.size();i++) {
+					Platform plat=platforms.get(i);
 					if((plat.x<playerXLeft && plat.x+plat.width>playerXLeft) || (plat.x<playerXRight && plat.x+plat.width>playerXRight)) {
 						if(playerYLeft>plat.y-10) {
 							if(plat.y>newGroundLevel) {
@@ -540,7 +596,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				
 				//RIGHT COLLISION
 				newGroundLevel=Integer.MAX_VALUE;
-				for(Platform plat:platforms) {
+				for(int i=0;i<platforms.size();i++) {
+					Platform plat=platforms.get(i);
 					if((plat.y<playerYLeft && plat.y+plat.height>playerYLeft) || (plat.y<playerYRight && plat.y+plat.height>playerYRight)) {
 						if(playerXRight<=plat.x+10) {
 							if(plat.x<newGroundLevel) {
@@ -553,7 +610,8 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				
 				//LEFT COLLISION
 				newGroundLevel=-Integer.MAX_VALUE;
-				for(Platform plat:platforms) {
+				for(int i=0;i<platforms.size();i++) {
+					Platform plat=platforms.get(i);
 					if((plat.y<=playerYLeft && plat.y+plat.height>=playerYLeft) || (plat.y<=playerYRight && plat.y+plat.height>=playerYRight)) {
 						if(playerXLeft>=plat.x+plat.width-10) {
 							if(plat.x+plat.width>newGroundLevel) {
@@ -564,7 +622,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				}
 				leftGroundLevel=newGroundLevel;
 				//frame counter: grace period for 500/100=5 seconds
-				if(shooting && !dead && frameCounter>=100) {
+				if(shooting && !dead && frameCounter>=300) {
 					if(weaponCooldown==0) {
 						bulletCounter++;
 						//System.out.println(px+" "+py+" "+mx+" "+my+" "+deltax+" "+deltay);
@@ -655,14 +713,40 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 					ready++;
 					if(ready==Server.n) {
 						started=true;
-						if(players[myID].name.equals("")) {
-							players[myID].name="Player"+myID;
-						}
+						
+						
 						
 					}
 			}
 			else if(messageParts[0].charAt(0)=='J'){
 				clients=Integer.parseInt(String.valueOf(messageParts[0].charAt(4)))+1;
+			}else if(messageParts[0].charAt(0)=='M') {
+				int map=Integer.parseInt(String.valueOf(messageParts[0].charAt(3)));
+				if(map==1) {
+					platforms.add(new Platform(0,400,0,400,700,100));
+					platforms.add(new Platform(800,400,800,400,200,100));
+					platforms.add(new Platform(200,320,200,320,400,100));
+					platforms.add(new Platform(10,360,10,360,50,50));
+					platforms.add(new Platform(825,330,825,330,50,20));
+					platforms.add(new Platform(725,270,725,270,50,20));
+					platforms.add(new Platform(260,290,440,290,70,50));
+					platforms.add(new Platform(940,220,940,220,100,400));
+					
+				}else if(map==2) {
+					platforms.add(new Platform(0,400,0,400,1000,100));
+					platforms.add(new Platform(100,350,100,350,800,100));
+					platforms.add(new Platform(200,300,200,300,600,100));
+					platforms.add(new Platform(300,250,300,250,400,100));
+					platforms.add(new Platform(400,200,400,200,200,100));
+					platforms.add(new Platform(450,150,450,150,100,100));
+				}else if(map==3) {
+					platforms.add(new Platform(600,100,600,100,400,400));
+					platforms.add(new Platform(300,400,300,400,100,100));
+					platforms.add(new Platform(200,350,200,350,50,150));
+					platforms.add(new Platform(100,300,100,300,50,200));
+					platforms.add(new Platform(0,250,0,250,100,350));
+					platforms.add(new Platform(550,450,550,150,60,350));
+				}
 			}
 		}else {
 			int id=Integer.parseInt(String.valueOf(messageParts[0].charAt(6)));
@@ -683,6 +767,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				}
 				if(command.equals("Name")) {
 					players[id].name=change;
+					
 				}
 				if(command.equals("Shoot")) {
 					
@@ -844,7 +929,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				items.clear();
 			}
 		}else
-		if(e.getX()>=400 && e.getX()<=600 && e.getY()>=280 && e.getY()<=350 && !read_e) {
+		if(e.getX()>=400 && e.getX()<=600 && e.getY()>=300 && e.getY()<=370 && !read_e) {
 			c.write("Ready");
 			enteringName=false;
 			ready++;
@@ -862,6 +947,15 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 			enteringName=true;
 		}else {
 			enteringName=false;
+		}
+		if(e.getX()>=725 && e.getX()<=875 && e.getY()>=400 && e.getY()<=450 && !started && myID==0) {
+			map++;
+			if(map>3) {
+				map=1;
+			}
+		}
+		if(e.getX()>=20 && e.getX()<=70 && e.getY()>=40 && e.getY()<=90 && !started) {
+			viewingHelp=!viewingHelp;
 		}
 		
 	}

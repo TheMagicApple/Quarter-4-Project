@@ -22,12 +22,12 @@ public class Platform {
 	}
 	public void update() {
 		moveStage++;
-		if(moveStage<50) {
-			x+=(fx-ox)/50f;
-			y+=(fy-oy)/50f;
-		}else if(moveStage<100){
-			x-=(fx-ox)/50f;
-			y-=(fy-oy)/50f;
+		if(moveStage<200) {
+			x+=(fx-ox)/200f;
+			y+=(fy-oy)/200f;
+		}else if(moveStage<400){
+			x-=(fx-ox)/200f;
+			y-=(fy-oy)/200f;
 		}else {
 			moveStage=0;
 		}
