@@ -837,10 +837,11 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				dead=false;
 				collectedJump=false;
 				collectedSpeed=false;
-				collectedJump=false;
+				collectedGravity=false;
 				players[i].speed=3;
 				players[i].jump=6;
 				players[i].g=0.2f;
+				items.clear();
 			}
 		}else
 		if(e.getX()>=400 && e.getX()<=600 && e.getY()>=280 && e.getY()<=350 && !read_e) {
