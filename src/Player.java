@@ -14,7 +14,9 @@ public class Player {
 	public float vx=0;
 	public float y=200;
 	public float vy=0;
-	final float g=0.2f;
+	public float g=0.2f;
+	public int speed=3;
+	public int jump=6;
 	public boolean onGround=false;
 	public boolean touchingRight=false;
 	public boolean touchingLeft=false;
