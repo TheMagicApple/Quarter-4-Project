@@ -38,7 +38,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 	boolean movingUp=false;
 	boolean movingDown=false;
 	boolean shooting=false;
-	Client c=new Client();
+	ClientReal c=new ClientReal();
 	final static int FPS=60;
 	final static int WIDTH=1000;
 	final static int HEIGHT=500;
@@ -268,7 +268,7 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				platform.update();
 			}
 			for(int i=0;i<items.size();i++) {
-				items.get(i).draw(g);
+				if(items.get(i)!=null) items.get(i).draw(g);
 			}
 			g.setColor(new Color(30,30,30));
 			if(gamemode==0) {
@@ -678,11 +678,13 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				//VERTICAL COLLISION
 				int newGroundLevel=Integer.MAX_VALUE;
 				for(int i=0;i<platforms.size();i++) {
-					Platform plat=platforms.get(i);
-					if((plat.x<=playerXLeft && plat.x+plat.width>=playerXLeft) || (plat.x<=playerXRight && plat.x+plat.width>=playerXRight)) {
-						if(playerYRight<=plat.y+20) {
-							if(plat.y<newGroundLevel) {
-								newGroundLevel=Math.round(plat.y);
+					if(platforms.get(i)!=null){
+						Platform plat=platforms.get(i);
+						if((plat.x<=playerXLeft && plat.x+plat.width>=playerXLeft) || (plat.x<=playerXRight && plat.x+plat.width>=playerXRight)) {
+							if(playerYRight<=plat.y+20) {
+								if(plat.y<newGroundLevel) {
+									newGroundLevel=Math.round(plat.y);
+								}
 							}
 						}
 					}
@@ -691,11 +693,13 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				
 				newGroundLevel=-Integer.MAX_VALUE;
 				for(int i=0;i<platforms.size();i++) {
-					Platform plat=platforms.get(i);
-					if((plat.x<playerXLeft && plat.x+plat.width>playerXLeft) || (plat.x<playerXRight && plat.x+plat.width>playerXRight)) {
-						if(playerYLeft>plat.y-10) {
-							if(plat.y>newGroundLevel) {
-								newGroundLevel=Math.round(plat.y)+plat.height;
+					if(platforms.get(i)!=null){
+						Platform plat=platforms.get(i);
+						if((plat.x<playerXLeft && plat.x+plat.width>playerXLeft) || (plat.x<playerXRight && plat.x+plat.width>playerXRight)) {
+							if(playerYLeft>plat.y-10) {
+								if(plat.y>newGroundLevel) {
+									newGroundLevel=Math.round(plat.y)+plat.height;
+								}
 							}
 						}
 					}
@@ -705,11 +709,13 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				//RIGHT COLLISION
 				newGroundLevel=Integer.MAX_VALUE;
 				for(int i=0;i<platforms.size();i++) {
-					Platform plat=platforms.get(i);
-					if((plat.y<playerYLeft && plat.y+plat.height>playerYLeft) || (plat.y<playerYRight && plat.y+plat.height>playerYRight)) {
-						if(playerXRight<=plat.x+10) {
-							if(plat.x<newGroundLevel) {
-								newGroundLevel=Math.round(plat.x);
+					if(platforms.get(i)!=null){
+						Platform plat=platforms.get(i);
+						if((plat.y<playerYLeft && plat.y+plat.height>playerYLeft) || (plat.y<playerYRight && plat.y+plat.height>playerYRight)) {
+							if(playerXRight<=plat.x+10) {
+								if(plat.x<newGroundLevel) {
+									newGroundLevel=Math.round(plat.x);
+								}
 							}
 						}
 					}
@@ -719,11 +725,13 @@ public class Screen extends JPanel implements KeyListener,MouseListener,MouseMot
 				//LEFT COLLISION
 				newGroundLevel=-Integer.MAX_VALUE;
 				for(int i=0;i<platforms.size();i++) {
-					Platform plat=platforms.get(i);
-					if((plat.y<=playerYLeft && plat.y+plat.height>=playerYLeft) || (plat.y<=playerYRight && plat.y+plat.height>=playerYRight)) {
-						if(playerXLeft>=plat.x+plat.width-10) {
-							if(plat.x+plat.width>newGroundLevel) {
-								newGroundLevel=Math.round(plat.x)+plat.width;
+					if(platforms.get(i)!=null){
+						Platform plat=platforms.get(i);
+						if((plat.y<=playerYLeft && plat.y+plat.height>=playerYLeft) || (plat.y<=playerYRight && plat.y+plat.height>=playerYRight)) {
+							if(playerXLeft>=plat.x+plat.width-10) {
+								if(plat.x+plat.width>newGroundLevel) {
+									newGroundLevel=Math.round(plat.x)+plat.width;
+								}
 							}
 						}
 					}

@@ -1,41 +1,25 @@
-import java.io.BufferedReader;
+import java.awt.FontFormatException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.Scanner;
+
+import javax.swing.JFrame;
 
 public class Client {
-	static PrintWriter write;
-	static BufferedReader read;
-	public void go() throws IOException {
-		String host="localhost";
-		int port=9000;
+
+	public static void main(String[] args) throws IOException, FontFormatException {
+		JFrame fr = new JFrame("POLY PARTY!");
+		Screen screen=new Screen();
+		fr.add(screen);
+		fr.addKeyListener(screen);
+		fr.addMouseListener(screen);
+		fr.addMouseMotionListener(screen);
+		fr.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		fr.pack();
+		fr.setVisible(true);
 		try {
-			Socket server=new Socket(host,port); 
-			write=new PrintWriter(server.getOutputStream(), true);
-			read = new BufferedReader(new InputStreamReader(server.getInputStream()));
-			Scanner s=new Scanner(System.in);
-			(new Thread() {
-				  public void run() {
-					  while(true) {
-						try {
-							String s=read.readLine();
-							Screen.newMessage(s);
-							
-						} catch (IOException e) {
-							//...
-						}
-					  }
-				  }
-				 }).start();
-		}catch(IOException e) {
-			System.out.println("Server is not Online...");
+			screen.animate();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-	}
-	public void write(String s) {
-		write.println(s);
 	}
 }
