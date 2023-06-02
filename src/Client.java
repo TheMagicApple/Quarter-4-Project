@@ -11,7 +11,7 @@ public class Client {
 	static PrintWriter write;
 	static BufferedReader read;
 	public void go() throws IOException {
-		String host="10.210.113.163";
+		String host="localhost";
 		int port=9000;
 		try {
 			Socket server=new Socket(host,port); 

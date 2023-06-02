@@ -1,10 +1,11 @@
+import java.awt.FontFormatException;
 import java.io.IOException;
 
 import javax.swing.JFrame;
 
 public class Runner {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, FontFormatException {
 		JFrame fr = new JFrame("POLY PARTY!");
 		Screen screen=new Screen();
 		fr.add(screen);

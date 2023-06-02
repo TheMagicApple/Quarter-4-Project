@@ -24,24 +24,17 @@ public class Player {
 	public boolean touchingLeft=false;
 	public String name="";
 	public int health=100;
-	BufferedImage image;
 	public int animationStage=-1;
 	int R=252;
 	int G=186;
 	int B=3;
-
+	public int kills=0;
 	public float weaponRotation=0;
 	
 	public String weaponClass="MachineGun";
 	
 	public Player() {
-		
-		try {
-			image=ImageIO.read(new File("player (1).png"));
-			
-		} catch (IOException e) {
-			System.out.println("CANNOT LOAD PLAYER IMAGE");
-		}
+	
 	}
 	public void update(){
 		if(onGround && vy>0) vy=0;

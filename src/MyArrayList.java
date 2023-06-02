@@ -59,6 +59,8 @@ public class MyArrayList<E> {
 		for(int i=0;i<list.length;i++) {
 			list[i]=null;
 		}
+		size=0;
+		index=0;
 	}
 	public void reverse() {
 		for(int i=0;i<index/2;i++) {

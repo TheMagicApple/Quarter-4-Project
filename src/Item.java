@@ -41,5 +41,11 @@ public class Item {
 			((Graphics2D)g).setStroke(new BasicStroke(2,BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
 			g.fillPolygon(new int[] {x-5,x,x+5},new int[] {y-5,y+5,y-5},3);
 		}
+		if(type.equals("Ammo")) {
+			g.setColor(new Color(250, 171, 67));
+			g.fillRoundRect(x-10, y-10, 20, 20, 10,10);
+			g.setColor(Color.white);
+			g.fillRoundRect(x-7,y-4,14,8,5,5);
+		}
 	}
 }

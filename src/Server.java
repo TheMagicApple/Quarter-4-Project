@@ -1,11 +1,10 @@
 import java.net.*;
-import java.util.ArrayList;
 import java.io.*;
 
 public class Server {
-	static ArrayList<ConnectedClient> clients=new ArrayList<>();
+	static MyArrayList<ConnectedClient> clients=new MyArrayList<>();
 
-	public static int n=2;
+	public static int n=3;
 	public static void main(String[] args) throws IOException {
 		int portNumber = 9000;
 		ServerSocket serverSocket = new ServerSocket(portNumber);
@@ -17,8 +16,8 @@ public class Server {
 			clients.add(c);
 			broadcast("Join"+i,null);
 		}
-		for(ConnectedClient client:clients) {
-			client.thread.start();
+		for(int i=0;i<clients.size();i++) {
+			clients.get(i).thread.start();
 		}
 
 				
@@ -27,7 +26,8 @@ public class Server {
 	}
 	static void broadcast(String s,PrintWriter self) {
 
-		for(ConnectedClient client:clients) {
+		for(int i=0;i<clients.size();i++) {
+			ConnectedClient client=clients.get(i);
 			if(!client.write.equals(self)) client.write.println(s);
 		}
 	}
